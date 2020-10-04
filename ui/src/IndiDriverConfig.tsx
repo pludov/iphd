@@ -9,6 +9,7 @@ import CancellationToken from 'cancellationtoken';
 import { noErr } from './Utils';
 import { ShootResult } from '@bo/BackOfficeAPI';
 import * as BackofficeStatus from '@bo/BackOfficeStatus';
+import IndiFilterWheelFocusAdjusterConfig from './IndiFilterWheelFocusAdjusterConfig';
 
 
 type InputProps = {
@@ -20,6 +21,7 @@ type MappedProps = {
     details?: BackofficeStatus.IndiDeviceConfiguration["options"];
     cameraList: string[] | undefined;
     filterWheelList: string[] | undefined;
+    connectableFocuserList: string[];
 }
 
 type Props = InputProps & MappedProps;
@@ -77,6 +79,13 @@ class IndiDriverConfig extends React.PureComponent<Props, State> {
                             onChange={this.confirmFilterChange}
                     />
             </div>
+            {this.props.connectableFocuserList.map(
+                (focuserId)=>
+                    <div key={focuserId}>
+                        <div>Focus adjust for focuser <i>{focuserId}</i></div>
+                        <IndiFilterWheelFocusAdjusterConfig filterWheelId={this.props.driverId} focuserId={focuserId}/>
+                    </div>
+            )}
         </>
     }
 
@@ -123,10 +132,12 @@ class IndiDriverConfig extends React.PureComponent<Props, State> {
     }
     static mapStateToProps (store:Store.Content, ownProps: InputProps):MappedProps {
 
+        // FIXME: extends connectableFocuserList with already set configuration
         const result = {
             driver: Utils.getOwnProp(store.backend.indiManager?.configuration.indiServer.devices, ownProps.driverId)?.driver || "",
             cameraList: store.backend.camera?.availableDevices,
             filterWheelList: store.backend.filterWheel?.availableDevices,
+            connectableFocuserList: [...(store.backend?.focuser?.availableFocusers || [])],
             details: Utils.getOwnProp(store.backend.indiManager?.configuration.indiServer.devices, ownProps.driverId)?.options,
         };
         return result;
