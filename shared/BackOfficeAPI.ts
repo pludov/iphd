@@ -91,6 +91,10 @@ export type DeleteSequenceStepRequest = {
     stepUid: string;
 }
 
+export type ImagingSetupManagerAPI = {
+
+}
+
 export type FilterWheelAPI = {
     changeFilter: (payload: {cameraDeviceId?: string, filterWheelDeviceId?: string, filterNumber?: number, filterId?: string, force?:boolean})=>boolean;
     abortFilterChange: (payload: {filterWheelDeviceId: string})=>void;
@@ -184,4 +188,5 @@ export type BackOfficeAPI = {
     imageProcessor: ImageProcessorAPI;
     phd: PhdAPI;
     notification: NotificationAPI;
+    imagingSetupManager: ImagingSetupManagerAPI;
 }

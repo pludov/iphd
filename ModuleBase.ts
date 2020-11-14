@@ -11,6 +11,7 @@ import Focuser from "./Focuser";
 import FilterWheel from "./FilterWheel";
 import SequenceManager from "./SequenceManager";
 import Notification from "./Notification";
+import ImagingSetupManager from "./ImagingSetupManager";
 
 export type ExpressApplication = ExpressApplicationFromExpress;
 
@@ -26,5 +27,6 @@ export type AppContext = {
     focuser: Focuser;
     astrometry: Astrometry;
     notification: Notification;
+    imagingSetupManager: ImagingSetupManager;
 };
 
