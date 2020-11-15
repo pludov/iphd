@@ -2,6 +2,7 @@ import { AstrometryResult } from "./ProcessorTypes";
 import { IndiMessage } from "./IndiTypes";
 
 export type ImagingSetup = {
+    name: string;
     cameraDevice: null|string;
     focuserDevice: null|string;
     filterWheelDevice: null|string;
@@ -504,7 +505,9 @@ export type PhdStatus = {
 };
 
 export type ImagingSetupStatus = {
+    availableImagingSetups: string[];
     configuration: {
+        currentImagingSetup: string|null;
         byuuid: {[uuid:string]:ImagingSetup}
     }
 };
