@@ -3,6 +3,7 @@ import * as Store from "./Store";
 import * as BackendRequest from "./BackendRequest";
 import CancellationToken from 'cancellationtoken';
 import * as DeviceIdMapper from './indiview/DeviceIdMapper';
+import * as ImagingSetupDeviceMapper from './indiview/ImagingSetupDeviceMapper';
 import "./DeviceConnectBton.css";
 
 type InputProps = {
@@ -104,7 +105,5 @@ class UnmappedDeviceConnectBton extends React.PureComponent<Props, State> {
 
 const ctor = Store.Connect(UnmappedDeviceConnectBton);
 const forActivePath = DeviceIdMapper.forActivePath(ctor);
-
-(ctor as any).forActivePath = forActivePath;
-
-export default ctor as (typeof ctor & {forActivePath : typeof forActivePath});
+const forImagingSetup = ImagingSetupDeviceMapper.forCurrentImagingSetup(ctor);
+export default Object.assign(ctor, {forActivePath, forImagingSetup});

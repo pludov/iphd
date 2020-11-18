@@ -5,28 +5,30 @@ import CancellationToken from 'cancellationtoken';
 
 import * as Store from './Store';
 import * as BackendRequest from "./BackendRequest";
-import PromiseSelector from './PromiseSelector';
+import PromiseSelector, { Props as PromiseSelectorProps } from './PromiseSelector';
 
-type InputProps = {
-    getValue: (store:Store.Content, props: InputProps)=>string|null
+type CustomProps = {
+    getValue: (store:Store.Content, props: CustomProps)=>string|null
 }
 
-type item = {
+export type Item = {
     key: string;
     title: string;
 }
 
-function getTitle(e:item) {
+function getTitle(e:Item) {
     return e.title;
 }
 
-function getId(e:item) {
+function getId(e:Item) {
     return e.key;
 }
 
+export type InputProps = CustomProps & Omit<PromiseSelectorProps<Item>, "getId"|"getTitle"|"active"|"placeholder"|"availablesGenerator">;
+
 const ImagingSetupSelector = connect(()=> {
     const listSelector = createSelector(
-        (store: Store.Content, ownProps: InputProps)=>store.backend?.imagingSetup?.configuration?.byuuid,
+        (store: Store.Content, ownProps: CustomProps)=>store.backend?.imagingSetup?.configuration?.byuuid,
         (byuuid)=> {
             const ret = [];
             for(const key of Object.keys(byuuid || {})) {
@@ -36,7 +38,7 @@ const ImagingSetupSelector = connect(()=> {
             return ret;
         });
 
-    return (store:Store.Content, ownProps:InputProps) => {
+    return (store:Store.Content, ownProps:CustomProps) => {
         const active = ownProps.getValue(store, ownProps);
         return ({
             active: active,
@@ -45,7 +47,7 @@ const ImagingSetupSelector = connect(()=> {
             availables: listSelector(store, ownProps)
         })
     }
-})(PromiseSelector);
+}, null, null, {forwardRef: true} as any)(PromiseSelector);
 
 const setCurrentImagingSetup = async(d:string|null)=>{
     await BackendRequest.RootInvoker("imagingSetupManager")("setCurrentImagingSetup")(

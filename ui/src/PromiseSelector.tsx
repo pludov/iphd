@@ -98,6 +98,11 @@ export default class PromiseSelector<TYPE> extends React.PureComponent<Props<TYP
             </select>;
     }
 
+    // Force the selection of an item (by id)
+    public select = (value: string) => {
+        this.clicked(JSON.stringify(value));
+    }
+
     clicked(value:string)
     {
         if (value !== null && value !== undefined && value.startsWith("ctrl:")) {
