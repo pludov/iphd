@@ -16,6 +16,9 @@ import DeviceSettingsBton from './DeviceSettingsBton';
 import './CameraView.css'
 import LiveFilterSelector from './LiveFilterSelector';
 import { StreamSize } from '@bo/BackOfficeStatus';
+import EditableImagingSetupSelector from './EditableImagingSetupSelector';
+import ImagingSetupSelector from './ImagingSetupSelector';
+import CameraViewDevicePanel from './CameraViewDevicePanel';
 
 type InputProps = {
 }
@@ -25,6 +28,9 @@ type MappedProps = {
     streamId: string|null;
     streamSerial: string|null;
     streamSize: StreamSize|null;
+    cameraDevice: string|null;
+    filterWheelDevice: string|null;
+    focuserDevice: string|null;
 }
 
 type Props = InputProps & MappedProps;
@@ -69,18 +75,37 @@ class CameraView extends React.PureComponent<Props> {
         return(<div className="CameraView">
             <div className="CameraViewSettings">
                 <div>
-                    <CameraSelector setValue={this.setCamera}/>
-                    <DeviceConnectBton.forActivePath
-                            activePath="$.backend.camera.selectedDevice"/>
-                    <DeviceSettingsBton.forActivePath
-                            activePath="$.backend.camera.selectedDevice"/>
+                    <EditableImagingSetupSelector setValue={ImagingSetupSelector.setCurrentImagingSetup} getValue={ImagingSetupSelector.getCurrentImagingSetupUid}/>
+                    {this.props.cameraDevice !== null
+                        ? <DeviceConnectBton.forImagingSetup deviceType="cameraDevice"/>
+                        : null
+                    }
                 </div>
-                <CameraSettingsView
-                    settingsPath={"$.backend.camera.configuration.deviceSettings"}
-                    activePath="$.backend.camera.selectedDevice"
-                    setValue={this.settingSetter}
-                />
-                <LiveFilterSelector.forActivePath activePath="$.backend.camera.selectedDevice"/>
+                {this.props.cameraDevice !== null ?
+                    <CameraViewDevicePanel title="Camera" deviceId={this.props.cameraDevice}>
+                        <CameraSettingsView
+                            current={this.props.cameraDevice}
+                            activePath={"unused - remove me"}
+                            settingsPath={"$.backend.camera.configuration.deviceSettings"}
+                            setValue={this.settingSetter}
+                        />
+
+                        <DeviceConnectBton deviceId={this.props.cameraDevice}/>
+                        <DeviceSettingsBton deviceId={this.props.cameraDevice}/>
+                    </CameraViewDevicePanel>
+                    :
+                    null
+                }
+                {this.props.filterWheelDevice !== null ?
+                    <CameraViewDevicePanel title="Filter Wheel" deviceId={this.props.filterWheelDevice}>
+                        <LiveFilterSelector.forActivePath activePath="$.backend.camera.selectedDevice"/>
+
+                        <DeviceConnectBton deviceId={this.props.filterWheelDevice}/>
+                        <DeviceSettingsBton deviceId={this.props.filterWheelDevice}/>
+                    </CameraViewDevicePanel>
+                    :
+                    null
+                }
             </div>
             <div className="CameraViewDisplay">
                 <FitsViewerWithAstrometry
@@ -102,51 +127,47 @@ class CameraView extends React.PureComponent<Props> {
     }
 
     static mapStateToProps(store:Store.Content, ownProps: InputProps):MappedProps {
-        try {
-            const camera = noErr(()=>store.backend.camera!.selectedDevice, undefined);
-            if (!camera) {
+        const imagingSetup = ImagingSetupSelector.getCurrentImagingSetup(store);
+
+        const cameraDevice = imagingSetup !== null ? imagingSetup.cameraDevice : null;
+        const filterWheelDevice = imagingSetup !== null ? imagingSetup.filterWheelDevice : null;
+        const focuserDevice = imagingSetup !== null ? imagingSetup.focuserDevice : null;
+
+        if (cameraDevice !== null && Object.prototype.hasOwnProperty.call(store.backend.camera!.currentStreams, cameraDevice)) {
+            const stream= store.backend.camera!.currentStreams[cameraDevice];
+            if (stream.streamId) {
                 return {
                     path: null,
-                    streamId: null,
-                    streamSerial: null,
-                    streamSize: null,
+                    streamId: stream.streamId,
+                    streamSerial: stream.serial === null ? null : "" + stream.serial,
+                    streamSize: stream.streamSize,
+                    cameraDevice,
+                    filterWheelDevice,
+                    focuserDevice,
                 };
             }
-            if (Object.prototype.hasOwnProperty.call(store.backend.camera!.currentStreams, camera)) {
-                const stream= store.backend.camera!.currentStreams[camera];
-                if (stream.streamId) {
-                    return {
-                        path: null,
-                        streamId: stream.streamId,
-                        streamSerial: stream.serial === null ? null : "" + stream.serial,
-                        streamSize: stream.streamSize,
-                    };
-                }
-            }
-            if (Object.prototype.hasOwnProperty.call(store.backend.camera!.lastByDevices, camera)) {
-                return {
-                    path: store.backend.camera!.lastByDevices[camera],
-                    streamId: null,
-                    streamSerial: null,
-                    streamSize: null,
-                };
-            } else {
-                return {
-                    path: null,
-                    streamId: null,
-                    streamSerial: null,
-                    streamSize: null,
-                };
-            }
-        } catch(e) {
-            console.log('Ignored camera pb', e);
+        }
+
+        if (cameraDevice !== null && Object.prototype.hasOwnProperty.call(store.backend.camera!.lastByDevices, cameraDevice)) {
             return {
-                path: null,
+                path: store.backend.camera!.lastByDevices[cameraDevice],
                 streamId: null,
                 streamSerial: null,
                 streamSize: null,
-            }
+                cameraDevice,
+                filterWheelDevice,
+                focuserDevice,
+            };
         }
+        return {
+            path: null,
+            streamId: null,
+            streamSerial: null,
+            streamSize: null,
+            cameraDevice,
+            filterWheelDevice,
+            focuserDevice,
+        };
     }
 }
 

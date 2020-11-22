@@ -8,7 +8,7 @@ import CameraExpEditor from './CameraExpEditor';
 import './CameraView.css'
 
 type InputProps = {
-    // path to currentSettings
+    // path to currentSettings - TODO : drop
     activePath: string;
     // path to the property that hold the camera id
     settingsPath: string;
@@ -30,7 +30,7 @@ class CameraSettingsView extends React.PureComponent<Props> {
             return null;
         }
         const deviceId = "[" + JSON.stringify(this.props.current)+"]"
-        return <div>
+        return <>
             <StatePropCond device={this.props.current} property="CCD_BINNING">
                     <span className='cameraSetting'>
                         <CameraBinEditor
@@ -57,9 +57,10 @@ class CameraSettingsView extends React.PureComponent<Props> {
                             setValue={this.props.setValue('exposure')}/>
                     </span>
             </StatePropCond>
-        </div>;
+        </>;
     }
 
+    // TODO : drop
     static mapStateToProps = function(store: Store.Content, ownProps: InputProps) {
         return ({
             current: atPath(store, ownProps.activePath)
@@ -67,4 +68,4 @@ class CameraSettingsView extends React.PureComponent<Props> {
     }
 }
 
-export default Store.Connect(CameraSettingsView);
+export default Object.assign(CameraSettingsView, {byPath: Store.Connect(CameraSettingsView)});

@@ -67,7 +67,7 @@ class InitialConfirm extends React.PureComponent<Props> {
                     <DeviceConnectBton.forActivePath
                             activePath="$.backend.camera.selectedDevice"/>
                 </div>
-                <CameraSettingsView
+                <CameraSettingsView.byPath
                     settingsPath="$.backend.camera.configuration.deviceSettings"
                     activePath="$.backend.camera.selectedDevice"
                     setValue={this.settingSetter}

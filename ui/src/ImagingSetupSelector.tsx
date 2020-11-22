@@ -58,10 +58,28 @@ const setCurrentImagingSetup = async(d:string|null)=>{
     );
 };
 
-const getCurrentImagingSetup = (store:Store.Content)=>{
+const getCurrentImagingSetupUid = (store:Store.Content)=>{
     const ret = store.backend?.imagingSetup?.configuration.currentImagingSetup;
     return (ret === undefined) ? null : ret;
 };
 
 
-export default Object.assign(ImagingSetupSelector, {setCurrentImagingSetup, getCurrentImagingSetup});
+const getCurrentImagingSetup = (store:Store.Content)=>{
+    const ret = getCurrentImagingSetupUid(store);
+    if (ret === null) {
+        return null;
+    }
+    const byuuid = store.backend?.imagingSetup?.configuration.byuuid;
+    if (byuuid === undefined) {
+        return null;
+    }
+
+    if (!Object.prototype.hasOwnProperty.call(byuuid, ret)) {
+        return null;
+    }
+
+    return byuuid[ret];
+
+}
+
+export default Object.assign(ImagingSetupSelector, {setCurrentImagingSetup, getCurrentImagingSetup, getCurrentImagingSetupUid});
