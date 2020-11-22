@@ -79,41 +79,6 @@ export default class FilterWheel
             true,
             true,
         );
-        this.indiManager.createMultiPreferredDeviceSelector({
-            availablePreferedCurrentPath:
-                [
-                    [
-                        ['filterWheel', 'availableDevices'],
-                        ['camera', 'configuration', 'deviceSettings', null, 'preferedFilterWheelDevice'],
-                        ['camera', 'dynStateByDevices', null, 'filterWheelDevice']
-                    ]
-                ]
-            ,
-            list:()=>Object.keys(this.context.camera.currentStatus.dynStateByDevices),
-            read:(camId:string)=>{
-                const camStatus = this.context.camera.currentStatus;
-                if (!hasKey(camStatus.dynStateByDevices, camId)) {
-                    return null;
-                }
-                if (!hasKey(camStatus.configuration.deviceSettings, camId)) {
-                    return null;
-                }
-                return {
-                    available: this.currentStatus.availableDevices,
-                    current: camStatus.dynStateByDevices[camId].filterWheelDevice || null,
-                    prefered: camStatus.configuration.deviceSettings[camId].preferedFilterWheelDevice || null,
-                }
-            },
-            set:(camId: string, values) => {
-                const camStatus = this.context.camera.currentStatus;
-                if (values.current !== undefined) {
-                    camStatus.dynStateByDevices[camId].filterWheelDevice = values.current;
-                }
-                if (values.prefered !== undefined) {
-                    camStatus.configuration.deviceSettings[camId].preferedFilterWheelDevice = values.prefered;
-                }
-            }
-        });
     }
 
     private updateCurrentFilterPos=(deviceId:string)=> {
@@ -207,18 +172,6 @@ export default class FilterWheel
 
     }
 
-    setFilterWheel=async (ct: CancellationToken, payload:{cameraDeviceId:string, filterWheelDeviceId: string|null})=>{
-        const camStatus = this.context.camera.currentStatus;
-        if (!hasKey(camStatus.dynStateByDevices, payload.cameraDeviceId)) {
-            throw new Error("Invalid camera");
-        }
-        if ((payload.filterWheelDeviceId !== null) && this.currentStatus.availableDevices.indexOf(payload.filterWheelDeviceId) === -1) {
-            throw new Error("Invalid filterwheel");
-        }
-        camStatus.dynStateByDevices[payload.cameraDeviceId].filterWheelDevice = payload.filterWheelDeviceId;
-        camStatus.configuration.deviceSettings[payload.cameraDeviceId].preferedFilterWheelDevice = payload.filterWheelDeviceId;
-    }
-
     abortFilterChange= async(ct:CancellationToken, payload:any)=>{}
 
     private needConfirmation(fwId:string) {
@@ -239,25 +192,9 @@ export default class FilterWheel
     }
 
     // Operation can be canceled by user
-    changeFilter= async(ct:CancellationToken, payload: {cameraDeviceId?: string, filterWheelDeviceId?: string, filterNumber?: number, filterId?: string, force?: boolean})=>{
-        let filterWheelDeviceId:string;
-        if (payload.filterWheelDeviceId === undefined) {
-            if (payload.cameraDeviceId === undefined) {
-                throw new Error("Camera or filterWheel required");
-            }
-            const camStatus = this.context.camera.currentStatus;
-            if (!hasKey(camStatus.dynStateByDevices, payload.cameraDeviceId)) {
-                throw new Error("Invalid camera");
-            }
-            const camDynState = camStatus.dynStateByDevices[payload.cameraDeviceId];
-            if (!camDynState.filterWheelDevice) {
-                throw new Error("Camera has no filterwheel");
-            }
-            filterWheelDeviceId = camDynState.filterWheelDevice;
-        } else {
-            filterWheelDeviceId = payload.filterWheelDeviceId;
-        }
-
+    changeFilter= async(ct:CancellationToken, payload: {filterWheelDeviceId: string, filterNumber?: number, filterId?: string, force?: boolean})=>{
+        const filterWheelDeviceId = payload.filterWheelDeviceId;
+        
         const checkFilterWheel=(force?: boolean)=>{
 
             if (!hasKey(this.currentStatus.dynStateByDevices, filterWheelDeviceId)) {
@@ -297,7 +234,7 @@ export default class FilterWheel
         if (this.needConfirmation(filterWheelDeviceId)) {
             const manualDriver = this.isManualFilterIndiDriver(filterWheelDeviceId);
 
-            const filterTitle = this.currentStatus.dynStateByDevices[filterWheelDeviceId].filterIds[filterPos];
+            const filterTitle = this.currentStatus.dynStateByDevices[filterWheelDeviceId].filterIds[filterPos - 1];
             const ready = await this.context.notification.dialog(ct,
                     (manualDriver
                         ? "Move filter of "
@@ -357,7 +294,6 @@ export default class FilterWheel
 
     getAPI() {
         return {
-            setFilterWheel:this.setFilterWheel,
             abortFilterChange: this.abortFilterChange,
             changeFilter: this.changeFilter,
         }

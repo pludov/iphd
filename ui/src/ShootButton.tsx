@@ -4,11 +4,12 @@ import CancellationToken from 'cancellationtoken';
 import { atPath } from "./shared/JsonPath";
 import * as Store from "./Store";
 import * as Utils from './Utils';
+import * as IndiUtils from './IndiUtils';
 import * as BackendRequest from "./BackendRequest";
 import { ShootResult } from '@bo/BackOfficeAPI';
 
 type InputProps = {
-    activePath: string;
+    cameraDevice: string|null;
     onSuccess: (t:ShootResult)=>void;
 }
 
@@ -80,7 +81,7 @@ class ShootBton extends React.PureComponent<Props> {
     }
 
     static mapStateToProps(store:Store.Content, ownProps:InputProps):MappedProps {
-        const active = atPath(store, ownProps.activePath);
+        const active = ownProps.cameraDevice;
         let available = false;
         let streamBton = false;
         if (active === undefined || active === null) {
@@ -88,13 +89,13 @@ class ShootBton extends React.PureComponent<Props> {
         }
 
         // Check if exposure is present
-        var deviceNode = atPath(store, '$.backend.indiManager.deviceTree[' + JSON.stringify(active) + "].CCD_EXPOSURE");
-        if (deviceNode === undefined) {
+        const ccdExposureVec = IndiUtils.getVectorDesc(store, active, 'CCD_EXPOSURE');
+        if (ccdExposureVec === undefined) {
             return {available, streamBton}
         }
         available = true;
 
-        const currentStream = atPath(store, '$.backend.camera.currentStreams[' + JSON.stringify(active) + "]");
+        const currentStream = Utils.getOwnProp(store.backend?.camera?.currentStreams, active);
         if (currentStream !== undefined) {
             return {
                 available,
@@ -106,13 +107,12 @@ class ShootBton extends React.PureComponent<Props> {
             }
         }
 
-        streamBton = !!(store.backend.camera?.dynStateByDevices[active]?.spyRecommanded);
+        streamBton = !!(Utils.getOwnProp(store.backend.camera?.dynStateByDevices,active)?.spyRecommanded);
 
-        const currentShoot = atPath(store, '$.backend.camera.currentShoots[' + JSON.stringify(active) + "]");
+        const currentShoot = Utils.getOwnProp(store.backend.camera?.currentShoots, active);
 
-        let running = (currentShoot != undefined);
-        if (!running) {
-            return {available, running, streamBton}
+        if (currentShoot === undefined) {
+            return {available, running: false, streamBton}
         }
 
         let elapsed, exposure;
@@ -126,7 +126,7 @@ class ShootBton extends React.PureComponent<Props> {
 
         return {
             available,
-            running,
+            running: true,
             managed: currentShoot.managed,
             elapsed,
             exposure,

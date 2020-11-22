@@ -98,9 +98,8 @@ export type ImagingSetupManagerAPI = {
 }
 
 export type FilterWheelAPI = {
-    changeFilter: (payload: {cameraDeviceId?: string, filterWheelDeviceId?: string, filterNumber?: number, filterId?: string, force?:boolean})=>boolean;
+    changeFilter: (payload: {filterWheelDeviceId: string, filterNumber?: number, filterId?: string, force?:boolean})=>boolean;
     abortFilterChange: (payload: {filterWheelDeviceId: string})=>void;
-    setFilterWheel: (payload: {cameraDeviceId: string, filterWheelDeviceId: string|null})=>void;
 }
 
 export type CameraAPI = {

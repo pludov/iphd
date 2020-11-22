@@ -18,12 +18,10 @@ export type CameraDeviceSettings = {
     iso?: null|string;
     path?: string;
     preferedFocuserDevice?: null|string;
-    preferedFilterWheelDevice?: null|string;
 }
 
 export type CameraDeviceDynState = {
     focuserDevice?: null|string;
-    filterWheelDevice?: null|string;
     spyRecommanded?: boolean;
 };
 

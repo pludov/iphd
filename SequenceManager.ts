@@ -480,13 +480,15 @@ export default class SequenceManager
                 }
 
                 if (param.filter) {
-                    console.log('Setting filter to ' + param.filter);
-                    sequence.progress = "Filter " + shootTitle;
-                    await this.context.filterWheel.changeFilter(ct, {
-                        cameraDeviceId: sequence.camera,
-                        filterId: param.filter,
-                    });
-                    ct.throwIfCancelled();
+                    throw new Error("Filter change refactoring needed");
+                    // This cannot work until complete transition to ImagingSetup usage.
+                    // console.log('Setting filter to ' + param.filter);
+                    // sequence.progress = "Filter " + shootTitle;
+                    // await this.context.filterWheel.changeFilter(ct, {
+                    //     cameraDeviceId: sequence.camera,
+                    //     filterId: param.filter,
+                    // });
+                    // ct.throwIfCancelled();
                 }
 
                 sequence.progress = (stepTypeLabel) + " " + shootTitle;

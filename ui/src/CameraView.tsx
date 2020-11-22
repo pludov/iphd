@@ -77,10 +77,6 @@ class CameraView extends React.PureComponent<Props> {
             <div className="CameraViewSettings">
                 <div>
                     <EditableImagingSetupSelector setValue={ImagingSetupSelector.setCurrentImagingSetup} getValue={ImagingSetupSelector.getCurrentImagingSetupUid}/>
-                    {this.props.cameraDevice !== null
-                        ? <DeviceConnectBton.forImagingSetup deviceType="cameraDevice"/>
-                        : null
-                    }
                 </div>
                 {this.props.cameraDevice !== null ?
                     <CameraViewDevicePanel title="Camera" deviceId={this.props.cameraDevice}>
@@ -122,7 +118,7 @@ class CameraView extends React.PureComponent<Props> {
                     subframe={null}/>
             </div>
             <ShootButton
-                    activePath="$.backend.camera.selectedDevice"
+                    cameraDevice={this.props.cameraDevice}
                     onSuccess={this.setPhoto}
                     />
         </div>);
