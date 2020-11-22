@@ -2,6 +2,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 
 import * as BackendRequest from "./BackendRequest";
+import * as FilterWheelStore from "./FilterWheelStore";
 import * as Store from "./Store";
 import CameraSettingsView from './CameraSettingsView';
 import DeviceConnectBton from './DeviceConnectBton';
@@ -14,11 +15,11 @@ import CameraSelector from "./CameraSelector";
 import DeviceSettingsBton from './DeviceSettingsBton';
 
 import './CameraView.css'
-import LiveFilterSelector from './LiveFilterSelector';
 import { StreamSize } from '@bo/BackOfficeStatus';
 import EditableImagingSetupSelector from './EditableImagingSetupSelector';
 import ImagingSetupSelector from './ImagingSetupSelector';
 import CameraViewDevicePanel from './CameraViewDevicePanel';
+import FilterSelector from './FilterSelector';
 
 type InputProps = {
 }
@@ -98,7 +99,11 @@ class CameraView extends React.PureComponent<Props> {
                 }
                 {this.props.filterWheelDevice !== null ?
                     <CameraViewDevicePanel title="Filter Wheel" deviceId={this.props.filterWheelDevice}>
-                        <LiveFilterSelector.forActivePath activePath="$.backend.camera.selectedDevice"/>
+                        <FilterSelector
+                                isBusy={FilterWheelStore.isFilterWheelBusy}
+                                getFilter={FilterWheelStore.currentTargetFilterId}
+                                setFilter={FilterWheelStore.changeFilter}
+                                filterWheelDevice={this.props.filterWheelDevice}/>
 
                         <DeviceConnectBton deviceId={this.props.filterWheelDevice}/>
                         <DeviceSettingsBton deviceId={this.props.filterWheelDevice}/>

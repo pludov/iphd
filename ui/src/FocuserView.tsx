@@ -18,7 +18,6 @@ import * as BackendRequest from "./BackendRequest";
 
 import './FocuserView.css';
 import Panel from './Panel';
-import LiveFilterSelector from './LiveFilterSelector';
 
 class FocuserBackendAccessor extends BackendAccessor<BackOfficeStatus.FocuserSettings> {
     // public apply = async (jsonDiff:any):Promise<void>=>{
@@ -359,7 +358,8 @@ class UnmappedFocuserView extends React.PureComponent<Props> {
                             ?
                             <>
                                 <div>
-                                    <LiveFilterSelector.forActivePath activePath="$.backend.focuser.selectedCamera"/>
+                                    {/* TODO : broken until ImagingSetup */}
+                                    {/* <LiveFilterSelector.forActivePath activePath="$.backend.focuser.selectedCamera"/> */}
                                 </div>
                                 <div>
                                     Focuser: <FocuserSelector setValue={this.setFocuser}/>

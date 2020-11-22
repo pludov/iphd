@@ -482,17 +482,18 @@ class SequenceStepEdit extends React.PureComponent<Props, State> {
     }
 
     renderFilter=(p:ParamDesc, settingsPath: string, foreachUuid: string|null, focusRef?: React.RefObject<any>)=> {
-        return <FilterSelector
-                        deviceId={this.props.camera}
-                        focusRef={focusRef}
-                        setFilter={async(filterWheelDeviceId:string|null, filterId: string|null)=>{
-                            if (filterId === null && filterWheelDeviceId !== null) {
-                                return;
-                            }
-                            await this.updateIterableSequenceStepParam('filter', filterId, foreachUuid);
-                        }}
-                        getFilter={(store)=>atPath(store, settingsPath + ".filter") || null}
-                    />
+        throw new Error("Filter rendering broken until convertion to ImagingSetup");
+        // return <FilterSelector
+        //                 deviceId={this.props.camera}
+        //                 focusRef={focusRef}
+        //                 setFilter={async(filterWheelDeviceId:string|null, filterId: string|null)=>{
+        //                     if (filterId === null && filterWheelDeviceId !== null) {
+        //                         return;
+        //                     }
+        //                     await this.updateIterableSequenceStepParam('filter', filterId, foreachUuid);
+        //                 }}
+        //                 getFilter={(store)=>atPath(store, settingsPath + ".filter") || null}
+        //             />
     }
 
     private ditheringDetailsModal = React.createRef<Modal>();

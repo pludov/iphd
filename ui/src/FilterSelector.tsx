@@ -10,8 +10,7 @@ import './CameraView.css'
 import DeviceConnectBton from './DeviceConnectBton';
 
 type InputProps = {
-    // cameraDeviceId
-    deviceId: string;
+    filterWheelDevice: string;
 
     // Where to store the choosen filter
     getFilter(store: Store.Content, filterWheelDeviceId: string): string | null;
@@ -22,10 +21,6 @@ type InputProps = {
 }
 
 type MappedProps = {
-    currentFilterWheel: string | null;
-    availableFilterWheels: string[];
-    preferedFilterWheel: string | null;
-
     currentFilter: string | null;
     availableFilters: string[];
     busy: boolean;
@@ -34,7 +29,7 @@ type MappedProps = {
 type Props = InputProps & MappedProps;
 
 
-class UnmappedFilterSelector extends React.PureComponent<Props> {
+class FilterSelector extends React.PureComponent<Props> {
     constructor(props: Props) {
         super(props);
     }
@@ -65,80 +60,41 @@ class UnmappedFilterSelector extends React.PureComponent<Props> {
         );
     }
 
-    currentFilterWheels() {
-        const ret = this.props.availableFilterWheels.map(
-            fw =>
-                fw !== this.props.currentFilterWheel
-                    ? <option key={"dev:" + fw} value={"dev:" + fw}>{fw}</option>
-                    : null
-        )
-        if (this.props.currentFilterWheel !== null) {
-            ret.push(<option key="nodev" value="">No filterwheel</option>);
-        }
-        return ret;
-    }
-
     update = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const targetValue = e.target.value;
-        if (targetValue.startsWith("dev:") || targetValue === "") {
-            const targetFw = targetValue === "" ? null : targetValue.substr(4);
-            // FIXME: progress feedback
-            BackendRequest.RootInvoker("filterWheel")("setFilterWheel")(CancellationToken.CONTINUE, {cameraDeviceId: this.props.deviceId, filterWheelDeviceId: targetFw});
-            this.props.setFilter(targetFw, null);
-        } else if (targetValue.startsWith("filter:")) {
+        if (targetValue.startsWith("filter:")) {
             const targetFilter = targetValue.substr(7);
-            // FIXME: progress feedback
-            this.props.setFilter(this.props.currentFilterWheel!, targetFilter);
+            this.props.setFilter(this.props.filterWheelDevice, targetFilter);
         } else {
             throw new Error("unsupported filterwheel value: " + targetValue);
         }
     }
 
     render() {
-        const currentValue = this.props.currentFilterWheel === null || this.props.currentFilter === null
+        const currentValue = this.props.currentFilter === null
             ? ""
             : "filter:" + this.props.currentFilter;
         return <>
             <span>
                 <select className={"FilterSelector" + (this.props.busy ? " BusyInfinite" : "")} onChange={this.update} value={currentValue} ref={this.props.focusRef}>
-                    {this.props.currentFilterWheel === null
-                        ? this.props.availableFilterWheels.length !== 0
-                            ? <option value="" disabled hidden>Filterwheel...</option>
-                            : <option value="" disabled hidden>No filterwheel</option>
-                        : this.props.currentFilter === null
+                    { this.props.currentFilter === null
                             ? <option value="" disabled hidden>Filter...</option>
                             : null
                     }
-                    {this.props.currentFilterWheel !== null
-                        ? true || (this.props.availableFilterWheels.length === 0
-                            || this.forceOption(this.props.availableFilterWheels, this.props.currentFilterWheel).length > 1)
-                            ?
-                                <>
-                                    <optgroup key={"dev:" + this.props.currentFilterWheel} label={this.props.currentFilterWheel}>{this.currentFilters()}</optgroup>
-                                    <optgroup key={"otherdevices"} label="Switch filterwheel">{this.currentFilterWheels()}</optgroup> 
-                                </>
-                            :
-                                <>
-                                    this.currentFilters()
-                                </>
-                        : this.currentFilterWheels()
+                    {
+                            this.currentFilters()
                     }
+
                 </select>
-                {this.props.currentFilterWheel !== null
-                    ? <DeviceConnectBton deviceId={this.props.currentFilterWheel}/>
-                    : null
-                }
             </span>
-            </>
+        </>
     }
 
     static mapStateToProps = function (store: Store.Content, ownProps: InputProps) {
-        const currentFilterWheel = noErr(() => store.backend.camera!.dynStateByDevices[ownProps.deviceId].filterWheelDevice, null) || null;
+        const currentFilterWheel = ownProps.filterWheelDevice;
 
         return ({
             currentFilterWheel,
-            availableFilterWheels: noErr(() => store.backend.filterWheel!.availableDevices, null) || [],
-            preferedFilterWheel: noErr(() => store.backend.camera!.configuration.deviceSettings[ownProps.deviceId].preferedFilterWheelDevice, null) || null,
 
             busy:
                 currentFilterWheel === null || !ownProps.isBusy
@@ -156,12 +112,7 @@ class UnmappedFilterSelector extends React.PureComponent<Props> {
     }
 }
 
-const ctor = Store.Connect(UnmappedFilterSelector);
-const forActivePath = DeviceIdMapper.forActivePath(ctor);
-
-(ctor as any).forActivePath = forActivePath;
-
-export default ctor as (typeof ctor & {forActivePath : typeof forActivePath});
+export default Store.Connect(FilterSelector);
 
 
 

@@ -16,7 +16,6 @@ import CameraSelector from "./CameraSelector";
 import DeviceSettingsBton from './DeviceSettingsBton';
 
 import './CameraView.css'
-import LiveFilterSelector from './LiveFilterSelector';
 import { StreamSize } from '@bo/BackOfficeStatus';
 import EditableImagingSetupSelector from './EditableImagingSetupSelector';
 import ImagingSetupSelector from './ImagingSetupSelector';
