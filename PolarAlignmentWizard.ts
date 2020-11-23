@@ -389,9 +389,13 @@ export default class PolarAlignmentWizard extends Wizard {
         let photoTime = Date.now();
         this.wizardStatus.polarAlignment!.shootRunning = true;
         try {
+            const cameraId = this.astrometry.cameraId();
+            if (cameraId === null) {
+                throw new Error("No camera in current setup");
+            }
             const photo = await this.astrometry.camera.doShoot(
                             token,
-                            this.astrometry.camera.currentStatus.selectedDevice!,
+                            cameraId,
                             (s)=> ({
                                 ...s,
                                 type: 'LIGHT',
@@ -496,8 +500,8 @@ export default class PolarAlignmentWizard extends Wizard {
                     try {
                         while(true) {
                             const geoCoords = this.readGeoCoords();
-                    
-                            if (!this.astrometry.camera.currentStatus.selectedDevice) {
+                            const cameraId = this.astrometry.cameraId();
+                            if (!cameraId) {
                                 throw new Error("No camera selected");
                             }
                             

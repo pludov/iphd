@@ -7,18 +7,24 @@ import * as Utils from "../../Utils";
 import Panel from "../../Panel";
 import Int from '../../primitives/Int';
 import Float from '../../primitives/Float';
-
+import * as FilterWheelStore from "../../FilterWheelStore";
 import DeviceConnectBton from '../../DeviceConnectBton';
-import CameraSelector from "../../CameraSelector";
 import CameraSettingsView from '../../CameraSettingsView';
 import IndiSelectorEditor from '../../IndiSelectorEditor';
 import AstrometryBackendAccessor from "../../AstrometryBackendAccessor";
 import * as BackendAccessor from "../../utils/BackendAccessor";
 import { PolarAlignSettings } from '@bo/BackOfficeStatus';
+import EditableImagingSetupSelector from '@src/EditableImagingSetupSelector';
+import ImagingSetupSelector from '@src/ImagingSetupSelector';
+import CameraViewDevicePanel from '@src/CameraViewDevicePanel';
+import DeviceSettingsBton from '@src/DeviceSettingsBton';
+import FilterSelector from '@src/FilterSelector';
 
 type InputProps = {};
 type MappedProps = {
     currentScope: string;
+    cameraDevice: string|null;
+    filterWheelDevice: string|null;
 }
 type Props = InputProps & MappedProps;
 
@@ -62,17 +68,39 @@ class InitialConfirm extends React.PureComponent<Props> {
 
 
                 <div>
-                    <CameraSelector setValue={this.setCamera}/>
-                    <DeviceConnectBton.forActivePath
-                            activePath="$.backend.camera.selectedDevice"/>
+                    <EditableImagingSetupSelector setValue={ImagingSetupSelector.setCurrentImagingSetup} getValue={ImagingSetupSelector.getCurrentImagingSetupUid}/>
+
                 </div>
-                <CameraSettingsView.byPath
-                    settingsPath="$.backend.camera.configuration.deviceSettings"
-                    activePath="$.backend.camera.selectedDevice"
-                    setValue={this.settingSetter}
-                    />
-                {/* TODO : broken until ImagingSetup */}
-                {/* <LiveFilterSelector.forActivePath activePath="$.backend.camera.selectedDevice"/> */}
+                {this.props.cameraDevice !== null ?
+                    <CameraViewDevicePanel title="Camera" deviceId={this.props.cameraDevice}>
+                        <CameraSettingsView
+                            current={this.props.cameraDevice}
+                            activePath={"unused - remove me"}
+                            settingsPath={"$.backend.camera.configuration.deviceSettings"}
+                            setValue={this.settingSetter}
+                        />
+
+                        <DeviceConnectBton deviceId={this.props.cameraDevice}/>
+                        <DeviceSettingsBton deviceId={this.props.cameraDevice}/>
+                    </CameraViewDevicePanel>
+                    :
+                    null
+                }
+                {this.props.filterWheelDevice !== null ?
+                    <CameraViewDevicePanel title="Filter Wheel" deviceId={this.props.filterWheelDevice}>
+                        <FilterSelector
+                                isBusy={FilterWheelStore.isFilterWheelBusy}
+                                getFilter={FilterWheelStore.currentTargetFilterId}
+                                setFilter={FilterWheelStore.changeFilter}
+                                filterWheelDevice={this.props.filterWheelDevice}/>
+
+                        <DeviceConnectBton deviceId={this.props.filterWheelDevice}/>
+                        <DeviceSettingsBton deviceId={this.props.filterWheelDevice}/>
+                    </CameraViewDevicePanel>
+                    :
+                    null
+                }
+
             </Panel>
 
             <Panel guid="astrom:polaralign:movements">
@@ -103,8 +131,15 @@ class InitialConfirm extends React.PureComponent<Props> {
     }
 
     static mapStateToProps(store: Store.Content, props: InputProps):MappedProps {
+        const imagingSetup = ImagingSetupSelector.getCurrentImagingSetup(store);
+
+        const cameraDevice = imagingSetup !== null ? imagingSetup.cameraDevice : null;
+        const filterWheelDevice = imagingSetup !== null ? imagingSetup.filterWheelDevice : null;
+
         return {
-            currentScope: store.backend.astrometry?.selectedScope || ""
+            currentScope: store.backend.astrometry?.selectedScope || "",
+            cameraDevice,
+            filterWheelDevice,
         }
     }
 }

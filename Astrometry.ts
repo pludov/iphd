@@ -30,7 +30,6 @@ const defaultSettings = ():AstrometrySettings=> ({
 });
 
 // Astrometry requires: a camera, a mount
-// It uses the first camera and the first mount (as Focuser)
 export default class Astrometry implements RequestHandler.APIAppProvider<BackOfficeAPI.AstrometryAPI>{
     appStateManager: JsonProxy<BackofficeStatus>;
     readonly context: AppContext;
@@ -39,6 +38,14 @@ export default class Astrometry implements RequestHandler.APIAppProvider<BackOff
     get imageProcessor() { return this.context.imageProcessor };
     get indiManager() { return this.context.indiManager };
     get camera() { return this.context.camera };
+
+    cameraId() {
+        let id = this.context.imagingSetupManager.getCurrent()?.cameraDevice;
+        if (id === undefined) {
+            id = null;
+        }
+        return id;
+     };
 
     runningWizard: null|Wizard = null;
 

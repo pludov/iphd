@@ -228,6 +228,7 @@ export type CameraShoot = {
 
 export type CameraStatus = {
     status: string;
+    // TODO : remove
     selectedDevice: string | null;
     availableDevices: string [];
     currentStreams: {[deviceId: string]: CameraStream};

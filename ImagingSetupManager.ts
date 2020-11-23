@@ -201,6 +201,14 @@ export default class ImagingSetupManager
         }
     }
 
+    getCurrent() {
+        const currentId = this.currentStatus.configuration.currentImagingSetup;
+        if (currentId === null) {
+            return undefined;
+        }
+        return this.getByUuid(currentId);
+    }
+
     getAPI=()=>{
         return {
             setCurrentImagingSetup: this.setCurrentImagingSetup,
