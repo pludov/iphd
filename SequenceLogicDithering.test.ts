@@ -20,7 +20,7 @@ describe("SequenceLogicDithering", () => {
             progress: null,
             
             title: "Test sequence",
-            camera: "camera_id",
+            imagingSetup: "imaging_setup_id",
             errorMessage: null,
             
             stepStatus: {},
@@ -89,7 +89,7 @@ describe("SequenceLogicDithering", () => {
             progress: null,
             
             title: "Test sequence",
-            camera: "camera_id",
+            imagingSetup: "imaging_setup_id",
             errorMessage: null,
             
             stepStatus: {},
@@ -160,7 +160,7 @@ describe("SequenceLogicDithering", () => {
             progress: null,
             
             title: "Test sequence",
-            camera: "camera_id",
+            imagingSetup: "imaging_setup_id",
             errorMessage: null,
             
             stepStatus: {},
@@ -241,7 +241,7 @@ describe("SequenceLogicDithering", () => {
             progress: null,
             
             title: "Test sequence",
-            camera: "camera_id",
+            imagingSetup: "imaging_setup_id",
             errorMessage: null,
             
             stepStatus: {},
@@ -318,7 +318,7 @@ describe("SequenceLogicDithering", () => {
             progress: null,
             
             title: "Test sequence",
-            camera: "camera_id",
+            imagingSetup: "imaging_setup_id",
             errorMessage: null,
             
             stepStatus: {},
@@ -415,7 +415,7 @@ describe("SequenceLogicDithering", () => {
             progress: null,
             
             title: "Test sequence",
-            camera: "camera_id",
+            imagingSetup: "imaging_setup_id",
             errorMessage: null,
             
             stepStatus: {},
@@ -484,7 +484,7 @@ describe("SequenceLogicDithering", () => {
             progress: null,
             
             title: "Test sequence",
-            camera: "camera_id",
+            imagingSetup: "imaging_setup_id",
             errorMessage: null,
             
             stepStatus: {},

@@ -9,6 +9,36 @@ import * as RequestHandler from "./RequestHandler";
 import * as BackOfficeAPI from "./shared/BackOfficeAPI";
 
 
+class ImagingSetupInstance {
+
+    private readonly manager: ImagingSetupManager;
+    public readonly uid: string|null;
+
+    constructor(manager: ImagingSetupManager, uid:string|null) {
+        this.manager = manager;
+        this.uid = uid;
+    }
+
+
+    readonly config = ()=> {
+        if (this.uid === null) {
+            throw new Error("No imaging setup selected");
+        }
+        return this.manager.getByUuid(this.uid);
+    }
+
+    exists() {
+        if (this.uid === null) {
+            return false;
+        }
+        const byuuid = this.manager.currentStatus.configuration.byuuid;
+        if (!Obj.hasKey(byuuid, this.uid)) {
+            return false;
+        }
+        return true;
+    }
+}
+
 
 export default class ImagingSetupManager
         implements RequestHandler.APIAppProvider<BackOfficeAPI.ImagingSetupManagerAPI> {
@@ -215,6 +245,10 @@ export default class ImagingSetupManager
             setDevice: this.setDevice,
             setName: this.setName,
         }
+    }
+
+    getImagingSetupInstance(imagingSetupId: string|null) {
+        return new ImagingSetupInstance(this, imagingSetupId);
     }
 
 }

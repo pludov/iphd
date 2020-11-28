@@ -10,12 +10,12 @@ import './CameraView.css'
 import DeviceConnectBton from './DeviceConnectBton';
 
 type InputProps = {
-    filterWheelDevice: string;
+    filterWheelDevice: string|undefined;
 
     // Where to store the choosen filter
-    getFilter(store: Store.Content, filterWheelDeviceId: string): string | null;
+    getFilter(store: Store.Content, filterWheelDeviceId: string|undefined): string | null;
     isBusy?:(store:Store.Content, filterWheelDeviceId: string)=>boolean;
-    setFilter: (filterWheelDeviceId: string|null, filterId: string|null) => Promise<void>;
+    setFilter: (filterWheelDeviceId: string, filterId: string|null) => Promise<void>;
 
     focusRef?: React.RefObject<HTMLSelectElement>
 }
@@ -61,6 +61,10 @@ class FilterSelector extends React.PureComponent<Props> {
     }
 
     update = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        if (this.props.filterWheelDevice === undefined) {
+            throw new Error("No filter wheel device");
+        }
+
         const targetValue = e.target.value;
         if (targetValue.startsWith("filter:")) {
             const targetFilter = targetValue.substr(7);
@@ -97,16 +101,13 @@ class FilterSelector extends React.PureComponent<Props> {
             currentFilterWheel,
 
             busy:
-                currentFilterWheel === null || !ownProps.isBusy
+                !currentFilterWheel || !ownProps.isBusy
                     ? false
                     : ownProps.isBusy(store, currentFilterWheel),
-            currentFilter:
-                currentFilterWheel === null
-                    ? null
-                    : ownProps.getFilter(store, currentFilterWheel),
+            currentFilter: ownProps.getFilter(store, currentFilterWheel),
             availableFilters:
-                currentFilterWheel === null
-                    ? null
+                !currentFilterWheel
+                    ? []
                     : FilterWheelStore.availableFilterIds(store, currentFilterWheel),
         });
     }

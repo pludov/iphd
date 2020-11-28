@@ -8,7 +8,7 @@ import * as IndiUtils from './IndiUtils';
 
 type InputProps = {
     // name of the device (indi id)
-    device: string;
+    device: string|undefined;
     // Location of the value in the store
     valuePath: string;
     // Function that build a promises
@@ -29,7 +29,7 @@ function ExpValueGenerator(props:Props) {
     var result:number[] = [];
     // Consider step as the min step.
 
-    if (props.$min != undefined) {
+    if (props.$min !== undefined) {
         const min = parseFloat(props.$min);
         const max = parseFloat(props.$max);
         // Probably too simple for the moment
@@ -56,13 +56,13 @@ function ExpTitle(x:number) {
 }
 
 const CameraExpEditor = connect((store: Store.Content, ownProps:InputProps) => {
-    const indiDeviceDesc = IndiUtils.getDeviceDesc(store, ownProps.device)?.CCD_EXPOSURE;
+    const indiDeviceDesc = ownProps.device === undefined ? undefined : IndiUtils.getDeviceDesc(store, ownProps.device)?.CCD_EXPOSURE;
     return ({
         active: atPath(store, ownProps.valuePath),
         availablesGenerator: ExpValueGenerator,
         getTitle: ExpTitle,
-        $min: atPath(indiDeviceDesc, '$.childs.CCD_EXPOSURE_VALUE["$min"]'),
-        $max: atPath(indiDeviceDesc, '$.childs.CCD_EXPOSURE_VALUE["$max"]'),
+        $min: indiDeviceDesc?.childs?.CCD_EXPOSURE_VALUE?.["$min"],
+        $max: indiDeviceDesc?.childs?.CCD_EXPOSURE_VALUE?.["$max"],
     });
 })(PromiseSelector.default) as new (props:InputProps)=>(React.PureComponent<InputProps>)
 

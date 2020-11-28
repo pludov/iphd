@@ -8,7 +8,7 @@ import * as IndiUtils from './IndiUtils';
 
 type InputProps = {
     // name of the device (indi id)
-    device: string;
+    device: string|undefined;
     // Location of the value in the store
     valuePath: string;
     // Function that build a promises
@@ -52,7 +52,7 @@ function BinTitle(x:number) {
 }
 
 const CameraBinSelector = connect((store: Store.Content, ownProps: InputProps) => {
-    const desc = IndiUtils.getDeviceDesc(store, ownProps.device)?.CCD_BINNING;
+    const desc = ownProps.device === undefined ? undefined : IndiUtils.getDeviceDesc(store, ownProps.device)?.CCD_BINNING;
     const root = {
             active: atPath(store, ownProps.valuePath),
             availablesGenerator: BinValueGenerator,
@@ -66,12 +66,12 @@ const CameraBinSelector = connect((store: Store.Content, ownProps: InputProps) =
     } else {
         return {
             ... root,
-            $minx: atPath(desc, '$.childs.HOR_BIN["$min"]'),
-            $maxx: atPath(desc, '$.childs.HOR_BIN["$max"]'),
-            $stepx: atPath(desc, '$.childs.HOR_BIN["$step"]'),
-            $miny: atPath(desc, '$.childs.VER_BIN["$min"]'),
-            $maxy: atPath(desc, '$.childs.VER_BIN["$max"]'),
-            $stepy: atPath(desc, '$.childs.VER_BIN["$step"]'),
+            $minx: desc?.childs?.HOR_BIN?.["$min"],
+            $maxx: desc?.childs?.HOR_BIN?.["$max"],
+            $stepx: desc?.childs?.HOR_BIN?.["$step"],
+            $miny: desc?.childs?.VER_BIN?.["$min"],
+            $maxy: desc?.childs?.VER_BIN?.["$max"],
+            $stepy: desc?.childs?.VER_BIN?.["$step"],
         }
     };
 })(PromiseSelector.default) as new (props:InputProps)=>(React.PureComponent<InputProps>);

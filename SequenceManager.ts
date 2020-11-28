@@ -60,6 +60,7 @@ export default class SequenceManager
     lastStarCount: number|undefined;
     lastImageTime: number = 0;
     get indiManager() { return this.context.indiManager };
+    get imagingSetupManager() { return this.context.imagingSetupManager };
     get imageProcessor() { return this.context.imageProcessor };
     constructor(app:ExpressApplication, appStateManager:JsonProxy<BackofficeStatus>, context:AppContext) {
         this.appStateManager = appStateManager;
@@ -144,7 +145,7 @@ export default class SequenceManager
             status: 'idle',
             title: 'New sequence',
             progress: null,
-            camera: null,
+            imagingSetup: null,
             errorMessage: null,
 
             root: {
@@ -410,12 +411,40 @@ export default class SequenceManager
 
                 // const {stepId, step} = nextStep;
 
-                if (sequence.camera === null) {
-                    throw new Error("No device specified");
+                if (sequence.imagingSetup === null) {
+                    throw new Error("No imaging setup specified");
+                }
+
+                const imagingSetupInstance = ()=> {
+                    const isi = this.imagingSetupManager.getImagingSetupInstance(sequence.imagingSetup);
+
+                    if (!isi.exists()) {
+                        throw new Error("Unknown imaging setup");
+                    }
+
+                    return isi;
+                }
+
+                const cameraDevice = () => {
+                    const isi = imagingSetupInstance();
+                    const ret = isi.config().cameraDevice;
+                    if (ret === null) {
+                        throw new Error("Imaging setup has no camera");
+                    }
+                    return ret;
+                }
+
+                const filterWheelDevice = () => {
+                    const isi = imagingSetupInstance();
+                    const ret = isi.config().filterWheelDevice;
+                    if (ret === null) {
+                        throw new Error("Imaging setup has no filter wheel");
+                    }
+                    return ret;
                 }
 
                 // Check that camera is connected
-                const device = this.indiManager.checkDeviceConnected(sequence.camera);
+                const device = this.indiManager.checkDeviceConnected(cameraDevice());
 
                 const param : SequenceStep = sequenceLogic.getParameters(nextStep);
 
@@ -461,10 +490,10 @@ export default class SequenceManager
                 // Send a cover scope dialog if required
                 const newScopeState:ScopeState = (param.type && hasKey(stateByFrameType, param.type)) ? stateByFrameType[param.type] : 'light';
                 if (newScopeState !== scopeState) {
-                    if (this.needCoverScopeMessage(sequence.camera))
+                    if (this.needCoverScopeMessage(cameraDevice()))
                     {
                         // Check that camera is connected first
-                        this.indiManager.checkDeviceConnected(sequence.camera);
+                        this.indiManager.checkDeviceConnected(cameraDevice());
 
                         // Ask confirmation
                         const acked = await this.context.notification.dialog<boolean|"neverask">(ct, coverMessageByFrameType[newScopeState],
@@ -473,27 +502,35 @@ export default class SequenceManager
                             throw new CancellationToken.CancellationError("User canceled");
                         }
                         if (acked === "neverask") {
-                            this.disableCoverScopeMessage(sequence.camera);
+                            this.disableCoverScopeMessage(cameraDevice());
                         }
                     }
                     scopeState = newScopeState;
                 }
 
                 if (param.filter) {
-                    throw new Error("Filter change refactoring needed");
-                    // This cannot work until complete transition to ImagingSetup usage.
-                    // console.log('Setting filter to ' + param.filter);
-                    // sequence.progress = "Filter " + shootTitle;
-                    // await this.context.filterWheel.changeFilter(ct, {
-                    //     cameraDeviceId: sequence.camera,
-                    //     filterId: param.filter,
-                    // });
-                    // ct.throwIfCancelled();
+                    console.log('Setting filter to ' + param.filter);
+                    sequence.progress = "Filter " + shootTitle;
+
+                    const filterWheelDeviceId = filterWheelDevice();
+
+                    if (filterWheelDeviceId === null) {
+                        throw new Error("Imaging setup has no filter wheel");
+                    }
+
+                    this.indiManager.checkDeviceConnected(filterWheelDeviceId);
+
+                    await this.context.filterWheel.changeFilter(ct, {
+                        filterWheelDeviceId,
+                        filterId: param.filter,
+                    });
+
+                    ct.throwIfCancelled();
                 }
 
                 sequence.progress = (stepTypeLabel) + " " + shootTitle;
                 ct.throwIfCancelled();
-                const shootResult = await this.context.camera.doShoot(ct, sequence.camera, ()=>(settings));
+                const shootResult = await this.context.camera.doShoot(ct, cameraDevice(), ()=>(settings));
                 
                 progress.imagePosition++;
                 progress.timeSpent += param.exposure;

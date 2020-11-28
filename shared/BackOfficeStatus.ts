@@ -86,7 +86,7 @@ export type Sequence = {
     status: "idle"|"running"|"paused"|"done"|"error";
     progress: string | null;
     title: string;
-    camera: string | null;
+    imagingSetup: string | null;
     errorMessage: string|null;
     count?:number;
     done?:boolean;

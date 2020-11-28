@@ -10,7 +10,7 @@ import { has } from './shared/JsonProxy';
 
 export type InputProps = {
     // name of the device (indi id)
-    device: string;
+    device: string|undefined;
     // Location of the value in the store
     valuePath: string;
     // Function that build a promises
@@ -35,7 +35,7 @@ function IndiTitle(x: string, props: Props) {
 
 const emptyArray: [] = [];
 const IndiSelectorEditor = connect((store: Store.Content, ownProps: InputProps) => {
-    const indiDeviceDesc = IndiUtils.getVectorDesc(store, ownProps.device, ownProps.vecName);
+    const indiDeviceDesc = ownProps.device === undefined ? undefined : IndiUtils.getVectorDesc(store, ownProps.device, ownProps.vecName);
     return ({
         indiDeviceDesc: indiDeviceDesc,
         active: atPath(store, ownProps.valuePath),

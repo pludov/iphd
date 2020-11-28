@@ -18,6 +18,7 @@ export type ParamDesc = {
     hidden?: boolean;
     render?:(s:SequenceStepEdit)=>((p: ParamDesc, settingsPath: string, foreachUuid: string|null, focusRef?: React.RefObject<HTMLBaseElement>)=>JSX.Element|null);
     renderMore?:(s:SequenceStepEdit)=>((p: ParamDesc, settingsPath: string)=>JSX.Element|null);
+    // TODO : move CameraCapacity within imagingSetup
     available?: (cap:CameraCapacity, detailsStack: SequenceStep[])=>boolean;
     capacity?: (camera: string, s:Store.Content)=>Partial<CameraCapacity>;
 }
