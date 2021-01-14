@@ -35,7 +35,7 @@ async function newSequence(onCreated: (uid:string)=>void) {
 const SequenceSelector = connect(()=>{
     const sequenceSelectorBaseProps = {
         placeholder: 'Sequence...',
-        nullAlwaysPossible: true,
+        nullAlwaysPossible: false,
         getTitle: (id:string, props:any)=>(id && props.definitions[id] ? props.definitions[id].title : null),
         setValue: setCurrentSequence,
     };
@@ -44,7 +44,7 @@ const SequenceSelector = connect(()=>{
             (store: Store.Content, ownProps: OwnProps)=>ownProps.onCreated,
             (onCreated)=> [{
                 id:'new',
-                title:'New',
+                title:'✏️ New',
                 run: ()=>newSequence(onCreated)
             }]);
 
