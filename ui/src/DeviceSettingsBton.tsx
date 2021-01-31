@@ -1,4 +1,5 @@
 import * as React from 'react';
+import * as Help from "./Help";
 import Modal from './Modal';
 import * as DeviceIdMapper from './indiview/DeviceIdMapper';
 
@@ -11,6 +12,7 @@ type Props = {
 
 // Display a connect/disconnect button for a device
 export default class DeviceSettingsBton extends React.PureComponent<Props> {
+    static help = Help.key("INDI device settings", "Setup advanced Mobindi behavior regarding the INDI device (auto-connect, ...)");
     private modal = React.createRef<Modal>();
     constructor(props:Props) {
         super(props);
@@ -22,7 +24,7 @@ export default class DeviceSettingsBton extends React.PureComponent<Props> {
 
     render() {
         return <>
-            <input type="button" onClick={this.config} disabled={this.props.deviceId === null} className="DeviceSettingsBton" value={"\u2699"}/>
+            <input type="button" onClick={this.config} disabled={this.props.deviceId === null} className="DeviceSettingsBton" {...DeviceSettingsBton.help.dom()} value={"\u2699"}/>
             {this.props.deviceId !== null
                 ? <Modal ref={this.modal}>
                     <IndiDriverConfig driverId={this.props.deviceId!} />

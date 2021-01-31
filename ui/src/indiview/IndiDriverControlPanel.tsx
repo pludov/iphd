@@ -3,6 +3,7 @@
  */
 import React, { Component, PureComponent} from 'react';
 import CancellationToken from 'cancellationtoken';
+import * as Help from "../Help";
 import * as Store from "../Store";
 import * as Actions from "../Actions";
 import * as BackendRequest from "../BackendRequest";
@@ -25,6 +26,7 @@ type MappedProps = {
 type Props = InputProps & MappedProps;
 
 class IndiDriverControlPanel extends React.PureComponent<Props> {
+    static restartBtonHelp = Help.key("Restart driver", "Kill & restart the selected INDI driver (use with caution)");
     private readonly modal = React.createRef<Modal>();
 
     constructor(props:Props) {
@@ -46,6 +48,7 @@ class IndiDriverControlPanel extends React.PureComponent<Props> {
                 <DeviceSettingsBton deviceId={this.props.current}/>
                 <input type='button'
                             onClick={this.restart}
+                            {...IndiDriverControlPanel.restartBtonHelp.dom()}
                             className='IndiRestartButton'
                             value={'\u21bb'}/>
             </span>

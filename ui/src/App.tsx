@@ -20,6 +20,7 @@ import * as Store from './Store';
 import BaseApp from './BaseApp';
 import * as ChartJSZoomBugfix from './utils/ChartJSZoomPlugin';
 import NotificationContainer from './NotificationContainer';
+import HelpOverlayView from './HelpOverlay';
 
 ChartJSZoomBugfix.init();
 
@@ -88,10 +89,11 @@ class App extends React.PureComponent<Props> {
                 return (
                     <>
                         <NotificationContainer/>
+                        <HelpOverlayView/>
                         <div className="App">
                             <div className="AppStatusBar">
                                 {
-                                    this.apps.map((app) => <AppIcon key={app.getAppId()} appid={app.getAppId()}></AppIcon>)
+                                    this.apps.map((app) => <AppIcon key={app.getAppId()} appid={app.getAppId()} helpKey={app.helpKey}/>)
                                 }
                             </div>
 

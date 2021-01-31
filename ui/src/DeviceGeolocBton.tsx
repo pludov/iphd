@@ -1,5 +1,6 @@
 import * as React from 'react';
 import * as Store from "./Store";
+import * as Help from "./Help";
 import * as BackendRequest from "./BackendRequest";
 import { atPath } from './shared/JsonPath';
 import CancellationToken from 'cancellationtoken';
@@ -41,6 +42,7 @@ function goodDelta(gpsVal:number|null, indiVal: number|undefined, tol: number, c
 
 // Display a connect/disconnect button for a device
 class UnmappedDeviceConnectBton extends React.PureComponent<Props, State> {
+    static readonly help = Help.key("GPS sync", "Use GPS from the mobile phone to update location of the INDI device. The button appears green if current value is accurate (under 1km, and below 10 meters for elevation)");
     constructor(props:Props) {
         super(props);
         this.state = {runningPromise: 0};
@@ -70,6 +72,7 @@ class UnmappedDeviceConnectBton extends React.PureComponent<Props, State> {
                         style={good ? {backgroundColor: "green"} : {}}
                         onClick={(e)=>Utils.promiseToState(this.startGeoloc, this)}
                         disabled={this.state.runningPromise !== 0 || this.props.state === "Busy"}
+                        {...UnmappedDeviceConnectBton.help.dom()}
                         value={title}/>
     }
 

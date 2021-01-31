@@ -1,4 +1,5 @@
 import * as React from 'react';
+import * as Help from './Help';
 import * as Store from './Store';
 import { noErr } from './Utils';
 import * as BackendRequest from "./BackendRequest";
@@ -30,6 +31,7 @@ type Props = InputProps & MappedProps;
 
 
 class FilterSelector extends React.PureComponent<Props> {
+    static filterSelectorHelp = Help.key("Filter selector", "Select filterwheel device and filter. Use options from the \"switch filterwheel\" section to change device");
     constructor(props: Props) {
         super(props);
     }
@@ -80,7 +82,7 @@ class FilterSelector extends React.PureComponent<Props> {
             : "filter:" + this.props.currentFilter;
         return <>
             <span>
-                <select className={"FilterSelector" + (this.props.busy ? " BusyInfinite" : "")} onChange={this.update} value={currentValue} ref={this.props.focusRef}>
+                <select className={"FilterSelector" + (this.props.busy ? " BusyInfinite" : "")} onChange={this.update} value={currentValue} ref={this.props.focusRef} {...FilterSelector.filterSelectorHelp.dom()}>
                     { this.props.currentFilter === null
                             ? <option value="" disabled hidden>Filter...</option>
                             : null

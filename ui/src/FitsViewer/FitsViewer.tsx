@@ -2,6 +2,7 @@
 import React, { Component, PureComponent, ReactElement} from 'react';
 import $ from 'jquery';
 import * as Obj from '../shared/Obj';
+import * as Help from '../Help';
 import './FitsViewer.css'
 import MouseMoveListener from '../MouseMoveListener';
 import ContextMenu from './ContextMenu';
@@ -58,7 +59,8 @@ export type ContextMenuEntry = {
     title: string;
     key: string;
     cb: (e:ContextMenuEvent)=>(void);
-    positional: boolean;
+    positional?: boolean;
+    helpKey: Help.Key;
 }
 
 export type ContextMenuEvent = {

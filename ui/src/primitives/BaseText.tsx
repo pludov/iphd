@@ -1,4 +1,5 @@
 import * as React from 'react';
+import * as Help from '../Help';
 import * as Store from '../Store';
 import TextEdit from '../TextEdit';
 
@@ -6,6 +7,7 @@ export type InputProps<TYPE> = {
     accessor: Store.Accessor<TYPE>;
     toString: (t:TYPE)=>string;
     fromString: (s:string)=>TYPE;
+    helpKey?: Help.Key;
 }
 
 export type MappedProps<TYPE> = {
@@ -18,7 +20,7 @@ export default class BaseText<TYPE> extends React.PureComponent<Props<TYPE>> {
     render() {
         let value = this.props.value;
         let strValue = this.props.toString(value);
-        return <span className='cameraSetting'>
+        return <span className='cameraSetting' {...this.props.helpKey?.dom()}>
             {this.props.children}
                 <TextEdit
                     value={strValue}

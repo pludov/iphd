@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import * as Utils from './Utils';
+import * as Help from './Help';
 import './AppIcon.css';
 import * as Store from './Store';
 import * as Actions from './Actions';
@@ -10,6 +11,7 @@ import { Notification } from './NotificationStore';
 
 export type InputProps = {
     appid: string;
+    helpKey: Help.Key;
 };
 
 export type MappedProps = {
@@ -45,7 +47,7 @@ class AppIcon extends React.PureComponent<Props> {
         }
         return (
             <div id={"AppIcon_" + appId} className={'Application' + (this.props.currentApp == appId ? ' Active' : '')} onClick={this.activate}>
-                <img  src={appId + ".png"}></img>
+                <img  src={appId + ".png"} {...this.props.helpKey.dom()}></img>
                 {inner}
             </div>);
     }

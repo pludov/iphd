@@ -4,12 +4,19 @@ table.DataTable {
 
 div.DataTable {
     overflow-x: auto;
-    overflow-y: auto;
+    overflow-y: hidden;
     border: 0.25vw solid #303030;
     width: calc(100% - 0.5vw);
+    display: flex;
+    flex-direction: column;
     /* flex-grow: 0.3;
     flex-shrink: 1;
     height: 15vh; */
+}
+
+div.DataTableScrollable {
+    overflow-y: auto;
+    flex: 1;
 }
 
 .DataTable td {
@@ -31,8 +38,7 @@ div.DataTable {
 
 .DataTableHeader {
     width: 100%;
-    display: block;
-    position: sticky;
+    display: inline-block;
     top: 0px;
     background: #000000;
     border-bottom: 0.25vw solid #303030;

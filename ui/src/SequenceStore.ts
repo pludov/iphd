@@ -6,6 +6,8 @@ export type SequenceStoreContent = {
     currentSequence: string|undefined;
     editingSequence: string|undefined;
     currentImage: string|undefined;
+    currentImageAutoSelectSerial?: number;
+    currentIsLast?: boolean;
 }
 
 export type Content = {
@@ -40,6 +42,26 @@ function adjuster(store:Store.Content):Store.Content {
             }
         }
     }
+
+    if (store.sequence.currentIsLast && store.sequence.currentSequence !== undefined && store.backend.sequence !== undefined) {
+        const currentSequence = store.sequence.currentSequence;
+
+        const sequence = Utils.getOwnProp(store.backend.sequence.sequences.byuuid, currentSequence);
+        if (sequence !== undefined && sequence.images.length) {
+            const lastImage = sequence.images[sequence.images.length - 1];
+            if (lastImage !== store.sequence.currentImage) {
+                store = {
+                    ...store,
+                    sequence: {
+                        ...store.sequence,
+                        currentImage: lastImage,
+                        currentImageAutoSelectSerial: (store.sequence.currentImageAutoSelectSerial||0) + 1,
+                    }
+                }
+            }
+        }
+    }
+
     return store;
 }
 
@@ -47,12 +69,22 @@ const setCurrentImage=(state: Store.Content, payload: {image: string})=>{
     if (state.sequence.currentImage === payload.image) {
         return state;
     }
-    
+    const currentSequence = state.sequence.currentSequence;
+
+    let currentIsLast = false;
+    const sequence = Utils.getOwnProp(state.backend.sequence?.sequences.byuuid, currentSequence);
+    if (sequence) {
+        if (sequence.images.length && payload.image === sequence.images[sequence.images.length - 1]) {
+            currentIsLast = true;
+        }
+    }
+
     return {
         ...state,
         sequence: {
             ...state.sequence,
             currentImage: payload.image,
+            currentIsLast
         }
     }
 }
@@ -67,6 +99,8 @@ const setCurrentSequence=(state: Store.Content, payload: {sequence: string})=>{
         sequence: {
             ...state.sequence,
             currentSequence: payload.sequence,
+            currentImage: undefined,
+            currentIsLast: true,
         }
     }
 }
@@ -100,6 +134,8 @@ export const initialState:Content = {
         currentImage: undefined,
         currentSequence: undefined,
         editingSequence: undefined,
+        currentImageAutoSelectSerial: undefined,
+        currentIsLast: true,
     }
 }
 

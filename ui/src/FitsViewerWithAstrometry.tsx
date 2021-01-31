@@ -7,8 +7,10 @@ import * as BackendRequest from "./BackendRequest";
 
 import './FitsViewerWithAstrometry.css';
 import FitsViewerInContext, {UnmappedFitsViewerInContext, InputProps as FitsViewerInContextInputProps} from './FitsViewerInContext';
+import {Props as FitsViewerProps, ContextMenuEntry} from './FitsViewer/FitsViewer';
 import SkyProjection from './SkyAlgorithms/SkyProjection';
 import * as Store from './Store';
+import * as Help from "./Help";
 import { SucceededAstrometryResult } from '@bo/ProcessorTypes';
 import CancellationToken from 'cancellationtoken';
 
@@ -51,6 +53,11 @@ type State = {
 
 class FitsViewerWithAstrometry extends React.PureComponent<Props, State> {
     private readonly fitsViewer = React.createRef<UnmappedFitsViewerInContext>();
+
+    private static fullScreenMenuHelp = Help.key("Toggle fullscreen", "Display the image using full screen (mobile) or full window (when using a desktop/laptop)");
+    private static astrometryMenuHelp = Help.key("Astrometry", "Locate the coordinate of the center of the image using stars matching (astrometry.net), then sync the scope position. The search is done near the scope current position. The setting used are accessible in the Astrometry tab");
+    private static astrometryWideMenuHelp = Help.key("Astrometry (wide)", "Locate the coordinate of the center of the image using stars matching (astrometry.net), then sync the scope position. The search is done through the whole visible sky area (using geo coords and current time). The setting used are accessible in the Astrometry tab");
+    private static gotoMenuHelp = Help.key("Goto here", "Center the scope to the highlighted position");
 
     constructor(props:Props) {
         super(props);
@@ -125,9 +132,10 @@ class FitsViewerWithAstrometry extends React.PureComponent<Props, State> {
                 (m:MappedProps)=>m.move
             ],
             (start, narrowable, move)=> {
-                const ret:any[] = [{
+                const ret:ContextMenuEntry[] = [{
                     title: 'Toggle fullscreen',
                     key: 'fullscreen',
+                    helpKey: FitsViewerWithAstrometry.fullScreenMenuHelp,
                     cb: this.toggleFs,
                 }];
                 if (start) {
@@ -135,17 +143,20 @@ class FitsViewerWithAstrometry extends React.PureComponent<Props, State> {
                         ret.push({
                             title: 'Astrometry',
                             key: 'astrometry',
-                            cb: this.start
+                            helpKey: FitsViewerWithAstrometry.astrometryMenuHelp,
+                            cb: ()=>this.start()
                         });
                         ret.push({
                             title: 'Astrometry (Wide)',
                             key: 'astrometry',
+                            helpKey: FitsViewerWithAstrometry.astrometryWideMenuHelp,
                             cb: this.startWide
                         });
                     } else {
                         ret.push({
                             title: 'Astrometry (Wide)',
                             key: 'astrometry',
+                            helpKey: FitsViewerWithAstrometry.astrometryWideMenuHelp,
                             cb: this.startWide
                         });
                     }
@@ -154,6 +165,7 @@ class FitsViewerWithAstrometry extends React.PureComponent<Props, State> {
                     ret.push({
                         title: 'Goto here',
                         key: 'goto',
+                        helpKey: FitsViewerWithAstrometry.gotoMenuHelp,
                         cb: this.move,
                         positional: true,
                     });

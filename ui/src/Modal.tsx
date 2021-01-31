@@ -1,9 +1,11 @@
 import * as React from 'react';
+import * as Help from "./Help";
 import "./Modal.css";
 
 type Props = {
     forceVisible?: boolean;
     onClose?:()=>(void);
+    closeHelpKey?: Help.Key;
 }
 
 type State = {
@@ -27,7 +29,7 @@ class Modal extends React.PureComponent<Props, State> {
         return <div className="Modal">
                     <div className="ModalContent">
                         {this.props.children}
-                        <input type='button' value='Close' onClick={this.close}/>
+                        <input type='button' value='Close' onClick={this.close} {...this.props.closeHelpKey?.dom()}/>
                     </div>
         </div>;
     }

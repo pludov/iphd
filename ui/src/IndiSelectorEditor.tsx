@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 import { atPath } from './shared/JsonPath';
 import * as PromiseSelector from './PromiseSelector';
 import * as Utils from './Utils';
+import * as Help from './Help';
 import * as Store from './Store';
 import * as IndiUtils from './IndiUtils';
 import { IndiDevice, IndiVector } from '@bo/BackOfficeStatus';
@@ -16,6 +17,7 @@ export type InputProps = {
     // Function that build a promises
     setValue: (e:string)=>Promise<void>;
     vecName: string;
+    helpKey: Help.Key;
     focusRef?: React.RefObject<HTMLSelectElement>
 }
 
@@ -40,6 +42,7 @@ const IndiSelectorEditor = connect((store: Store.Content, ownProps: InputProps) 
         indiDeviceDesc: indiDeviceDesc,
         active: atPath(store, ownProps.valuePath),
         availables: indiDeviceDesc?.childNames || emptyArray,
+        helpKey: ownProps.helpKey,
         getTitle: IndiTitle
     });
 })(PromiseSelector.default)

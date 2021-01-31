@@ -4,6 +4,7 @@ import * as BackOfficeStatus from '@bo/BackOfficeStatus';
 
 import * as Utils from '../Utils';
 import * as Store from '../Store';
+import * as Help from '../Help';
 import * as BackendRequest from '../BackendRequest';
 import { atPath } from '../shared/JsonPath';
 
@@ -27,6 +28,12 @@ type State = {
 }
 
 export class SequenceControler extends React.PureComponent<Props, State> {
+    private static startBtonHelp = Help.key("Start", "Start the current sequence. The sequence will restart after the last successfull frame if possible.");
+    private static stopBtonHelp = Help.key("Stop", "Stop the current sequence. The current exposure is aborted immediately. It is possible to restart it later (Start)");
+    private static editBtonHelp = Help.key("edit", "Edit the definition of the sequence. Most parameter can be adjusted while sequence is running. They'll be applied after the end of the current exposure.");
+    private static resetBtonHelp = Help.key("reset", "Reset the current sequence. It will restart from the begining, whatever process has already been made.");
+    private static dropBtonHelp = Help.key("drop", "Remove the sequence from the list. The image files are not dropped.");
+
     constructor(props:Props) {
         super(props);
         this.state = {
@@ -114,6 +121,7 @@ export class SequenceControler extends React.PureComponent<Props, State> {
                     </div>
             </div>
             <input
+                {...SequenceControler.startBtonHelp.dom()}
                 type='button'
                 value='Start'
                 id='Start'
@@ -121,15 +129,16 @@ export class SequenceControler extends React.PureComponent<Props, State> {
                 onClick={(e)=>Utils.promiseToState(this.startSequence, this)}
             />
             <input
+                {...SequenceControler.stopBtonHelp.dom()}
                 type='button'
                 value='Stop'
                 id='Stop'
                 disabled={!clickable.stop}
                 onClick={(e)=>Utils.promiseToState(this.stopSequence, this)}
             />
-            <input type='button' disabled={!clickable.edit} value='edit' onClick={this.openEditDialog}/>
-            <input type='button' disabled={!clickable.reset} value='reset' onClick={(e)=>Utils.promiseToState(this.resetSequence, this)}/>
-            <input type='button' disabled={!clickable.drop} value='drop' onClick={(e)=>Utils.promiseToState(this.dropSequence, this)}/>
+            <input {...SequenceControler.editBtonHelp.dom()} type='button' disabled={!clickable.edit} value='edit' onClick={this.openEditDialog}/>
+            <input {...SequenceControler.resetBtonHelp.dom()} type='button' disabled={!clickable.reset} value='reset' onClick={(e)=>Utils.promiseToState(this.resetSequence, this)}/>
+            <input {...SequenceControler.dropBtonHelp.dom()} type='button' disabled={!clickable.drop} value='drop' onClick={(e)=>Utils.promiseToState(this.dropSequence, this)}/>
         </div>);
     }
 

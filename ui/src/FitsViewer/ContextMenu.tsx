@@ -1,4 +1,5 @@
 import React, { Component, PureComponent, CSSProperties, RefObject} from 'react';
+import * as Help from '../Help';
 import { ContextMenuEntry, LevelId } from './FitsViewer';
 
 export type Props = {
@@ -11,6 +12,12 @@ export type Props = {
 
 export default class ContextMenu extends PureComponent<Props> {
     private readonly itemRef: RefObject<HTMLDivElement> = React.createRef();
+
+    static readonly lowHelp= Help.key('Low level', "Define the low bound for the image rendering curve (relative to histogram, 50% is the mean value)");
+    static readonly mediumHelp= Help.key('Median level', "Define the medium value for the image rendering curve (relative to histogram, 50% is the mean value)");
+    static readonly highHelp= Help.key('High level', "Define the high bound for the image rendering curve (relative to histogram, 50% is the mean value)");
+    static readonly fwhmHelp= Help.key('FWHM', "Locate stars and display the mean FWHM");
+    static readonly histogramHelp =Help.key('Histogram', "Display histogram for the image");
 
     constructor(props:Props) {
         super(props);
@@ -75,15 +82,16 @@ export default class ContextMenu extends PureComponent<Props> {
                                     event = {...event, ...this.props.xlateCoords(event.x, event.y)};
                                     e.cb(event);
                                 }}
+                                {...e.helpKey?.dom()}
                                 key={e.key}>
                             {e.title}
                         </div>)
                 }
-                <div className="Item" onClick={this.showLow}>Low level</div>
-                <div className="Item" onClick={this.showMedium}>Median</div>
-                <div className="Item" onClick={this.showHigh}>High level</div>
-                <div className="Item" onClick={this.showHistogram}>Histogram</div>
-                <div className="Item" onClick={this.showFwhm}>FWHM</div>
+                <div className="Item" {...ContextMenu.lowHelp.dom()} onClick={this.showLow}>Low level</div>
+                <div className="Item" {...ContextMenu.mediumHelp.dom()} onClick={this.showMedium}>Median</div>
+                <div className="Item" {...ContextMenu.highHelp.dom()} onClick={this.showHigh}>High level</div>
+                <div className="Item" {...ContextMenu.fwhmHelp.dom()} onClick={this.showHistogram}>Histogram</div>
+                <div className="Item" {...ContextMenu.histogramHelp.dom()} onClick={this.showFwhm}>FWHM</div>
             </div>);
     }
 }

@@ -4,11 +4,11 @@ import * as BackOfficeStatus from '@bo/BackOfficeStatus';
 
 import * as Actions from '../Actions';
 import * as Store from '../Store';
-import * as BackendRequest from '../BackendRequest';
+import * as Help from '../Help';
 
 import * as SequenceStore from '../SequenceStore';
 import * as Utils from '../Utils';
-import Table from '../table/Table';
+import Table, { HeaderItem, FieldDefinition } from '../table/Table';
 import { atPath } from '../shared/JsonPath';
 import SequenceEditDialog from './SequenceEditDialog';
 
@@ -20,8 +20,52 @@ import SequenceSelector from './SequenceSelector';
 import ImageDetail from "./ImageDetail";
 
 
+type SequenceViewDatabaseObject = {
+    images?: BackOfficeStatus.CameraStatus["images"]["byuuid"],
+    imageList?: BackOfficeStatus.Sequence["images"],
+    imageStats?: BackOfficeStatus.Sequence["imageStats"],
+}
+
 type SequenceViewProps = {
 }
+
+const fieldList:Array<FieldDefinition & {id:string}> = [
+    {
+        id: 'path',
+        title:  'File',
+        defaultWidth: '100%',
+        render: (o:BackOfficeStatus.ImageStatus)=>(o === undefined ? "N/A" : o.path.indexOf('/') != -1 ? o.path.substring(o.path.lastIndexOf('/')+1) : o.path)
+    },
+    {
+        id: 'backgroundLevel',
+        title: 'BG',
+        defaultWidth: '4em',
+        render: (o:BackOfficeStatus.ImageStats)=>(o.backgroundLevel === undefined ? null: <span className='stat-bg'>{o.backgroundLevel.toLocaleString(undefined, {minimumFractionDigits:3, maximumFractionDigits: 3})}</span>),
+    },
+    {
+        id: 'fwhm',
+        title: 'FWHM',
+        defaultWidth:'4em',
+        render: (o:BackOfficeStatus.ImageStats)=>(o.fwhm === undefined ? null: <span className='stat-fwhm'>{o.fwhm.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits: 2})}</span>),
+    },
+    {
+        id: 'guideStats',
+        title: 'PHD',
+        defaultWidth: '4em',
+        render: (o:BackOfficeStatus.ImageStats)=>{
+            const rms = o.guideStats?.RADECDistanceRMS;
+            if (rms === null || rms === undefined) {
+                return null;
+            }
+            return <span className='stat-guide-rms'>
+                {rms.toLocaleString(undefined, {minimumFractionDigits:3, maximumFractionDigits: 3})}
+            </span>;
+        }
+    }
+]
+
+const fields = fieldList.reduce((c, a)=>{c[a.id]=a; return c}, {});
+const defaultHeader:HeaderItem[] = fieldList.map(e=>({id: e.id}));
 
 class SequenceView extends PureComponent<SequenceViewProps> {
     constructor(props:SequenceViewProps) {
@@ -81,21 +125,27 @@ class SequenceView extends PureComponent<SequenceViewProps> {
             </div>
             <div className="SequenceViewTable">
                 <Table statePath="$.sequenceView.list"
-                    fields={{
-                        path: {
-                            title:  'File',
-                            defaultWidth: '15em',
-                            render: (o:BackOfficeAPI.ShootResult)=>(o === undefined ? "N/A" : o.path.indexOf('/') != -1 ? o.path.substring(o.path.lastIndexOf('/')+1) : o.path)
-                        },
-                        device: {
-                            title:  'Device',
-                            defaultWidth: '12em'
+                    fields={fields}
+                    defaultHeader={defaultHeader}
+                    getDatabases={(store:Store.Content):SequenceViewDatabaseObject=>
+                        {
+                            const currentSequenceId = store.sequence.currentSequence;
+                            const currentSequence = Utils.getOwnProp(store.backend.sequence?.sequences?.byuuid, currentSequenceId);
+                            return {
+                                images: store.backend.camera?.images.byuuid,
+                                imageList: currentSequence?.images,
+                                imageStats: currentSequence?.imageStats,
+                            };
                         }
-                    }}
-                    defaultHeader={[{id: 'path'}, {id: 'device'}]}
-                    getItemList={this.getItemList}
-                    getItem={(store:any,uid:string)=>(atPath(store, '$.backend.camera.images.byuuid')[uid])}
+                    }
+                    getItemList={(db:SequenceViewDatabaseObject)=>(db.imageList||[])}
+                    getItem={(db:SequenceViewDatabaseObject,uid:string)=>
+                        ({
+                            ...Utils.getOwnProp(db.images, uid),
+                            ...Utils.getOwnProp(db.imageStats, uid)
+                        })}
                     currentPath='$.sequence.currentImage'
+                    currentAutoSelectSerialPath='$.sequence.currentImageAutoSelectSerial'
                     onItemClick={this.setCurrentImage}
                 />
             </div>

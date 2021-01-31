@@ -4,6 +4,7 @@ import CancellationToken from 'cancellationtoken';
 import { Line } from 'react-chartjs-2';
 
 import * as BackOfficeStatus from '@bo/BackOfficeStatus';
+import * as Help from './Help';
 import * as Store from './Store';
 import * as Utils from './Utils';
 import PromiseSelector from './PromiseSelector';
@@ -268,6 +269,11 @@ const FocuserSelector = connect((store:Store.Content)=> {
 
 
 class UnmappedFocuserView extends React.PureComponent<Props> {
+    static focusBtonHelp = Help.key("Start auto-focus", "Start a sequence of focus image, scanning a range of focuser positions, then use the best one found (best FHWM)");
+    static stopBtonHelp = Help.key("Stop auto-focus", "Abort the current running auto-focus");
+    static cameraSelectorHelp = Help.key("Camera", "Select the camera device to use for focusing");
+    static focuserSelectorHelp = Help.key("Focuser", "Select the focuser device to use for focusing");
+
     constructor(props: Props) {
         super(props);
     }
@@ -344,7 +350,7 @@ class UnmappedFocuserView extends React.PureComponent<Props> {
                         <span>Settings</span>
                     
                         <div>
-                            Camera: <CameraSelector setValue={this.setCamera}/>
+                            Camera: <CameraSelector setValue={this.setCamera} helpKey={UnmappedFocuserView.cameraSelectorHelp}/>
                             <DeviceConnectBton.forActivePath
                                     activePath="$.backend.focuser.selectedCamera"/>
                         </div>
@@ -362,7 +368,7 @@ class UnmappedFocuserView extends React.PureComponent<Props> {
                                     {/* <LiveFilterSelector.forActivePath activePath="$.backend.focuser.selectedCamera"/> */}
                                 </div>
                                 <div>
-                                    Focuser: <FocuserSelector setValue={this.setFocuser}/>
+                                    Focuser: <FocuserSelector setValue={this.setFocuser} helpKey={UnmappedFocuserView.focuserSelectorHelp}/>
                                     <DeviceConnectBton.forActivePath
                                         activePath={"$.backend.camera.dynStateByDevices[" + JSON.stringify(this.props.camera) + "].focuserDevice"}/>
                                 </div>
@@ -381,10 +387,12 @@ class UnmappedFocuserView extends React.PureComponent<Props> {
                     <input type="button" value="Stop" onClick={this.stop}
                         className="WizardLeftButton"
                         disabled={this.props.status !== "running"}
+                        {...UnmappedFocuserView.stopBtonHelp.dom()}
                         />
                     <input type="button" value="Focus" onClick={this.start}
                         className="WizardRightButton"
                         disabled={this.props.focuser === null || this.props.camera === null || this.props.status === "running"}
+                        {...UnmappedFocuserView.focusBtonHelp.dom()}
                         />
                 </div>
             </div>);

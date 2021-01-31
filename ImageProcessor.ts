@@ -47,6 +47,23 @@ export default class ImageProcessor
         return JSON.parse(result);
     }
 
+    // Find the first ADU value that has at level (0-1) adus
+    getHistgramAduLevel(channel: ProcessorTypes.ProcessorHistogramChannel, level:number):number {
+        const seuil = level * channel.pixcount;
+        let pos = undefined;
+        for(let i = 0 ; i < channel.data.length; ++i) {
+            if (channel.data[i] >= seuil) {
+                pos = i;
+                break;
+            }
+        }
+        if (pos === undefined) {
+            return channel.max;
+        } else {
+            return channel.min + pos;
+        }
+    }
+
     getAPI() {
         return {
             compute: this.compute

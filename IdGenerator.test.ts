@@ -30,4 +30,24 @@ describe("Direct result propagation", ()=> {
         expect(value.replace(/0+/g, '0')).to.eq('010', 'Only zero before 36');
 
     });
+
+    it('renumber', ()=>{
+        const gen = new IdGenerator();
+
+        const keys = [ '00000009', '00000003', '00000001', '00000007', '00000008' ];
+        const byuuid:{[id:string]:string} = {};
+        for(const k of keys) {
+            byuuid[k] = k;
+        }
+        gen.renumber(keys, byuuid);
+        expect(byuuid).to.deep.equal({
+            "00000002": "00000009",
+            "00000003": "00000003",
+            "00000001": "00000001",
+            "00000004": "00000007",
+            "00000005": "00000008",
+        });
+
+        expect(keys).to.deep.equal(['00000002', '00000003', '00000001', '00000004', '00000005' ]);
+    });
 });

@@ -1,6 +1,6 @@
 .NotificationViewContainer {
     position: fixed;
-    z-index: 2;
+    z-index: 1000;
     left: 0px;
     right: 0px;
     pointer-events: none;

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import PropTypes from 'prop-types';
+import * as Help from './Help';
 
 type Control = {
     id: string;
@@ -17,6 +17,7 @@ export type Props<TYPE> = {
     controls?: Array<Control>;
     setValue:(d:string)=>Promise<any>;
     focusRef?: React.RefObject<HTMLSelectElement>;
+    helpKey?: Help.Key;
 };
 type State<TYPE> = {
     forcedValue: string|null;
@@ -94,7 +95,9 @@ export default class PromiseSelector<TYPE> extends React.PureComponent<Props<TYP
         return <select ref={this.props.focusRef}
                     disabled={(this.state.runningPromise !== undefined) || disabled}
                     value={JSON.stringify(active)}
-                    onChange={(e)=>this.clicked(e.target.value)}>{options}
+                    onChange={(e)=>this.clicked(e.target.value)}
+                    {...this.props.helpKey?.dom()}
+                    >{options}
             </select>;
     }
 

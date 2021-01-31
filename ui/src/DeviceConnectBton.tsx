@@ -1,4 +1,5 @@
 import * as React from 'react';
+import * as Help from "./Help";
 import * as Store from "./Store";
 import * as BackendRequest from "./BackendRequest";
 import CancellationToken from 'cancellationtoken';
@@ -23,6 +24,9 @@ type Props = InputProps & MappedProps;
 
 // Display a connect/disconnect button for a device
 class UnmappedDeviceConnectBton extends React.PureComponent<Props, State> {
+    static connectHelp = Help.key("Connect", "Connect the INDI device");
+    static disconnectHelp = Help.key("Disconnect", "Disconnect the INDI device");
+
     constructor(props:Props) {
         super(props);
         this.state = {running: false};
@@ -32,10 +36,12 @@ class UnmappedDeviceConnectBton extends React.PureComponent<Props, State> {
     render() {
         var enabled = false;
         let className;
+        let help = UnmappedDeviceConnectBton.connectHelp;
         switch(this.props.state) {
             case 'On':
                 className="DeviceConnectBtonOn";
                 enabled = true;
+                help = UnmappedDeviceConnectBton.disconnectHelp;
                 break;
             case 'Off':
                 className='DeviceConnectBtonOff';
@@ -49,7 +55,7 @@ class UnmappedDeviceConnectBton extends React.PureComponent<Props, State> {
                 enabled = false;
         }
 
-        return <input type="button" className={"DeviceConnectBton " + className} onClick={this.switchConnection} disabled={!enabled} value={"\u23FB"}/>
+        return <input type="button" className={"DeviceConnectBton " + className} onClick={this.switchConnection} disabled={!enabled} {...help.dom()} value={"\u23FB"}/>
     }
 
     async switchConnection() {

@@ -4,6 +4,7 @@
 import * as React from 'react';
 
 import * as Store from "./Store";
+import * as Help from "./Help";
 import * as BackendRequest from "./BackendRequest";
 import './PhdView.css';
 import { PhdStatus, CameraStream } from '@bo/BackOfficeStatus';
@@ -25,6 +26,7 @@ type State = {}
 
 
 class PhdStream extends React.PureComponent<Props, State> {
+    private static selGuideStarHelp = Help.key("Sel. guide star", "Select the guide star for PHD.");
     constructor(props:Props) {
         super(props);
         this.state = {}
@@ -40,6 +42,7 @@ class PhdStream extends React.PureComponent<Props, State> {
     private readonly contextMenu = [
         {
             title: 'Sel. guide star',
+            helpKey: PhdStream.selGuideStarHelp,
             key: 'lock',
             cb: this.setLockPos,
             positional: true,

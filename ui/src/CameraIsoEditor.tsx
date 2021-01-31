@@ -1,7 +1,7 @@
 import React, { Component, PureComponent} from 'react';
 import { connect } from 'react-redux';
+import * as Help from './Help';
 import { atPath } from './shared/JsonPath';
-import * as Utils from './Utils';
 import * as IndiUtils from './IndiUtils';
 import * as PromiseSelector from './PromiseSelector';
 import * as Store from './Store';
@@ -96,6 +96,8 @@ function IsoTitle(x:string) {
     return "" + x + " iso";
 }
 
+const cameraIsoEditorHelp = Help.key("ISO", "Select the ISO value for the frame exposure");
+
 const CameraIsoEditor = connect((store:Store.Content, ownProps:InputProps) => {
     const desc = ownProps.device === undefined ? undefined : IndiUtils.getDeviceDesc(store, ownProps.device)?.CCD_ISO;
 
@@ -105,6 +107,7 @@ const CameraIsoEditor = connect((store:Store.Content, ownProps:InputProps) => {
         availablesGenerator: IsoValueGenerator,
         getTitle: IsoTitle,
         $itemCount: 0,
+        helpKey: cameraIsoEditorHelp,
     });
 
     if (!desc) {

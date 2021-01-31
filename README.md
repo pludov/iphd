@@ -43,13 +43,18 @@ existing softwares. You can find full software stack for astro/PI in the followi
 ## What's new
 
 ### Next release
+  * Metrics endpoint for monitoring using Prometheus.
+  * Improved sequence editor allowing to iterate various values of a parameter (like filters ...)
+  * Histogram inspection available from image viewer
+  * Sequence usability improvment, including per image stats (fwhm, background adu level, ...)
   * Support for custom http port. This is usefull if mobindi needs to coexist with other tool running on port 8080. To use, set the PORT env variable in mobindi.conf:
 ```
 PORT=8081
 ```
-  * Metrics endpoint for monitoring using Prometheus.
-  * Improved sequence editor allowing to iterate various values of a parameter (like filters ...)
-  * Histogram inspection available from image viewer
+  * Inline help available for most actions, with easy access from mobile device:
+
+![Inline Help](docs/inline_help.gif?raw=true "Inline help example")
+
 
 
 ### Release 1.2.0 (July 2019):

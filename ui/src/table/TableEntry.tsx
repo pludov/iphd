@@ -1,9 +1,11 @@
 import * as React from 'react';
+// import { createSelector } from 'reselect';
+import ArrayReselect from '../utils/ArrayReselect';
 import * as Store from '../Store';
 import * as Table from "./Table";
 import ScrollableText from '../ScrollableText';
 
-export type InputProps = {
+export type Props<DatabaseObject> = {
     header: Array<Table.HeaderItem>;
     fields: {
         [id: string]: Table.FieldDefinition
@@ -11,51 +13,48 @@ export type InputProps = {
     selected: boolean;
     uid: string;
 
+    databases: DatabaseObject;
     onItemClick: (uid:string, e:React.MouseEvent<HTMLTableRowElement>)=>void;
-    getItem: (store: Store.Content, uid: string)=>any;
+    getItem: (databases: DatabaseObject, uid:string)=>any,
 };
 
-export type MappedProps = {
-    item: any;
-};
+class TableEntry<DatabaseObject> extends React.PureComponent<Props<DatabaseObject>> {
+    private tr = React.createRef<HTMLTableRowElement>();
 
-export type Props = MappedProps & InputProps;
-
-class TableEntry extends React.PureComponent<Props> {
-
-    constructor(props:Props) {
+    constructor(props:Props<DatabaseObject>) {
         super(props);
         this.onClick = this.onClick.bind(this);
     }
 
     render() {
         var content = [];
+        const item = this.props.getItem(this.props.databases, this.props.uid);
         for(var o of this.props.header)
         {
             var field = this.props.fields[o.id];
             var details;
             if ('render' in field) {
-                details = field.render!(this.props.item);
+                details = field.render!(item);
             } else {
-                details = this.props.item === undefined ? "N/A" : "" + this.props.item[o.id];
+                details = item === undefined ? "N/A" : "" + item[o.id];
             }
             content.push(<td key={o.id}><ScrollableText>{details}</ScrollableText>
             </td>)
         }
-        return <tr onClick={this.onClick} className={this.props.selected?"selected" : ""}>{content}</tr>
+        return <tr onClick={this.onClick} className={this.props.selected?"selected" : ""} ref={this.tr}>{content}</tr>
     }
 
     onClick=(e:React.MouseEvent<HTMLTableRowElement>)=>{
-        console.log('WTF clicked', e);
         this.props.onItemClick(this.props.uid, e);
     }
 
-    static mapStateToProps = function(store:Store.Content, ownProps:InputProps): MappedProps
-    {
-        return {
-            item: ownProps.getItem(store, ownProps.uid)
+    scrollIn=()=>{
+        const tr = this.tr.current;
+        if (tr) {
+            tr.scrollIntoView();
         }
     }
 }
 
-export default Store.Connect(TableEntry);
+
+export default TableEntry;

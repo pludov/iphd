@@ -7,6 +7,7 @@ import * as BackOfficeStatus from '@bo/BackOfficeStatus';
 import * as Utils from '../Utils';
 import * as Actions from '../Actions';
 import * as Store from '../Store';
+import * as Help from '../Help';
 import * as BackendRequest from '../BackendRequest';
 
 import * as SequenceStore from '../SequenceStore';
@@ -32,12 +33,15 @@ async function newSequence(onCreated: (uid:string)=>void) {
     onCreated(sequence);
 }
 
+const sequenceSelectorHelp = Help.key("Sequence selector", "Select the sequence to display. Choose \"New\" to create a new sequence (last position)");
+
 const SequenceSelector = connect(()=>{
     const sequenceSelectorBaseProps = {
         placeholder: 'Sequence...',
         nullAlwaysPossible: false,
         getTitle: (id:string, props:any)=>(id && props.definitions[id] ? props.definitions[id].title : null),
         setValue: setCurrentSequence,
+        helpKey: sequenceSelectorHelp,
     };
 
     const controls = createSelector(

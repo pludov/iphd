@@ -2,6 +2,7 @@
  * Created by ludovic on 21/07/17.
  */
 import React, { Component, PureComponent} from 'react';
+import * as Help from "../Help";
 import { atPath } from '../shared/JsonPath';
 import * as Store from "../Store";
 import * as Actions from "../Actions";
@@ -20,6 +21,8 @@ type MappedProps = {
 type Props = InputProps & MappedProps;
 
 class IndiDriverSelector extends React.Component<Props> {
+    static help = Help.key("INDI driver selector", "Select which INDI device or driver to view details for.");
+
     constructor(props:Props) {
         super(props);
     }
@@ -34,6 +37,7 @@ class IndiDriverSelector extends React.Component<Props> {
         const deviceSelectorOptions = this.props.options.map((item) => <option key={item} value={item}>{item}</option>);
         return (<select value={this.props.current}
             onChange={this.updateDriver}
+            {...IndiDriverSelector.help.dom()}
             placeholder="Select device...">
             {deviceSelectorOptions}
         </select>);

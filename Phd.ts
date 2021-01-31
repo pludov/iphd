@@ -7,7 +7,7 @@ import ConfigStore from './ConfigStore';
 import ProcessStarter from './ProcessStarter';
 import { ExpressApplication, AppContext } from './ModuleBase.js';
 import JsonProxy from './JsonProxy.js';
-import { BackofficeStatus, PhdStatus, PhdGuideStep, PhdSettling, PhdAppState, DitheringSettings, PhdConfiguration, PhdServerConfiguration } from './shared/BackOfficeStatus.js';
+import { BackofficeStatus, PhdStatus, PhdGuideStep, PhdSettling, PhdAppState, DitheringSettings, PhdConfiguration, PhdServerConfiguration, PhdGuideStats } from './shared/BackOfficeStatus.js';
 import * as Metrics from "./Metrics";
 import * as RequestHandler from "./RequestHandler";
 import * as BackOfficeAPI from "./shared/BackOfficeAPI";
@@ -15,6 +15,8 @@ import Sleep from './Sleep.js';
 import { createTask, Task } from './Task.js';
 import PhdRpcError from './PhdRpcError.js';
 import Notification from './Notification.js';
+
+export type GuideStepListener = (simpleEvent:PhdGuideStep)=>(void);
 
 export type PhdRequest = {
     sent: boolean;
@@ -604,20 +606,16 @@ export default class Phd
         return uid;
     }
 
-    private updateStepsStats=()=>
+    public computeGuideStats=(steps:Array<PhdGuideStep>):PhdGuideStats=>
     {
         // calcul RMS et RMS ad/dec
         var rms = [0, 0];
         var count = 0;
         var keys:Array<keyof PhdGuideStep> = ['RADistanceRaw', 'DECDistanceRaw']
-        var log = [];
         var maxs = [0, 0, 0];
-        var minUid = this.currentStatus.firstStepOfRun;
-        Outer: for(var uid in this.steps)
-        {
-            if (uid < minUid) continue;
 
-            var step:PhdGuideStep = this.steps[uid];
+        Outer: for(const step of steps)
+        {
             const vals:number[] = [];
             for(const key of keys)
             {
@@ -654,10 +652,6 @@ export default class Phd
             return Math.sqrt(sqr / div);
         }
 
-        this.currentStatus.RADistanceRMS = calcRms(rms[0], count);
-        this.currentStatus.DECDistanceRMS = calcRms(rms[1], count);
-        this.currentStatus.RADECDistanceRMS = calcRms(rms[0] + rms[1], count);
-
         function calcPeak(val:number, div:number)
         {
             if (div == 0) {
@@ -665,9 +659,23 @@ export default class Phd
             }
             return val;
         }
-        this.currentStatus.RADistancePeak = calcPeak(maxs[0], count);
-        this.currentStatus.DECDistancePeak = calcPeak(maxs[1], count);
-        this.currentStatus.RADECDistancePeak = calcPeak(maxs[2], count);
+
+        return {
+            RADistanceRMS: calcRms(rms[0], count),
+            DECDistanceRMS: calcRms(rms[1], count),
+            RADECDistanceRMS: calcRms(rms[0] + rms[1], count),
+            RADistancePeak: calcPeak(maxs[0], count),
+            DECDistancePeak: calcPeak(maxs[1], count),
+            RADECDistancePeak: calcPeak(maxs[2], count),
+        }
+    }
+
+    private updateStepsStats=()=>
+    {
+        const minUid = this.currentStatus.firstStepOfRun;
+        const steps = Object.keys(this.steps).filter((uid)=>uid >= minUid).map(uid=>this.steps[uid])
+
+        Object.assign(this.currentStatus, this.computeGuideStats(steps));
     }
 
     signalListeners() {
@@ -675,6 +683,17 @@ export default class Phd
             if (Obj.hasKey(this.eventListeners, k)) {
                 this.eventListeners[k].test();
             }
+        }
+    }
+
+    private listeners:{[id:string]:GuideStepListener} = {};
+    private listenerId:number = 0;
+
+    public listenForSteps= (listener:(simpleEvent:PhdGuideStep)=>(void)):()=>(void)=>{
+        const nextId = "" + (this.listenerId++);
+        this.listeners[nextId] = listener;
+        return ()=>{
+            delete this.listeners[nextId];
         }
     }
 
@@ -686,6 +705,10 @@ export default class Phd
         }
         this.steps[this.stepIdToUid(this.stepId)] = simpleEvent;
         this.updateStepsStats();
+
+        for(const listener of Object.values(this.listeners)) {
+            listener(simpleEvent);
+        }
     }
 
     flushClientData()

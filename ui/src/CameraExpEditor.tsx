@@ -1,8 +1,8 @@
 import React, { Component, PureComponent} from 'react';
 import { connect } from 'react-redux';
+import * as Help from './Help';
 import { atPath } from './shared/JsonPath';
 import * as PromiseSelector from './PromiseSelector';
-import * as Utils from './Utils';
 import * as Store from './Store';
 import * as IndiUtils from './IndiUtils';
 
@@ -55,6 +55,8 @@ function ExpTitle(x:number) {
     return x + "s";
 }
 
+const cameraExpEditorHelp = Help.key("Exposure", "Set the frame exposure duration");
+
 const CameraExpEditor = connect((store: Store.Content, ownProps:InputProps) => {
     const indiDeviceDesc = ownProps.device === undefined ? undefined : IndiUtils.getDeviceDesc(store, ownProps.device)?.CCD_EXPOSURE;
     return ({
@@ -63,6 +65,7 @@ const CameraExpEditor = connect((store: Store.Content, ownProps:InputProps) => {
         getTitle: ExpTitle,
         $min: indiDeviceDesc?.childs?.CCD_EXPOSURE_VALUE?.["$min"],
         $max: indiDeviceDesc?.childs?.CCD_EXPOSURE_VALUE?.["$max"],
+        helpKey: cameraExpEditorHelp,
     });
 })(PromiseSelector.default) as new (props:InputProps)=>(React.PureComponent<InputProps>)
 

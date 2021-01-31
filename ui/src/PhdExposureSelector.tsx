@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import * as Store from './Store';
+import * as Help from './Help';
 import * as PromiseSelector from "./PromiseSelector";
 import * as BackendRequest from "./BackendRequest";
 import CancellationToken from 'cancellationtoken';
@@ -38,6 +39,8 @@ async function setValue(d:string) {
     await BackendRequest.RootInvoker("phd")("setExposure")(CancellationToken.CONTINUE, {exposure: parseInt(d, 10)});
 }
 
+const phdExposureSelectorHelp = Help.key("Select phd frame exposure duration");
+
 const PhdExposureSelector = connect((store: Store.Content, ownProps: InputProps):SelectorProps => {
     const phd = store.backend.phd;
 
@@ -51,6 +54,7 @@ const PhdExposureSelector = connect((store: Store.Content, ownProps: InputProps)
         placeholder: "Exp",
         availablesGenerator,
         setValue,
+        helpKey: phdExposureSelectorHelp,
     }
 })(PromiseSelector.default) as new (props:InputProps)=>(React.PureComponent<InputProps>);
 

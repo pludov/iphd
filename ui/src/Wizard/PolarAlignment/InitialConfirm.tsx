@@ -3,6 +3,7 @@ import CancellationToken from 'cancellationtoken';
 import '../../AstrometryView.css';
 import * as BackendRequest from "../../BackendRequest";
 import * as Store from "../../Store";
+import * as Help from "../../Help";
 import * as Utils from "../../Utils";
 import Panel from "../../Panel";
 import Int from '../../primitives/Int';
@@ -29,6 +30,10 @@ type MappedProps = {
 type Props = InputProps & MappedProps;
 
 class InitialConfirm extends React.PureComponent<Props> {
+    static sampleCountHelp = Help.key("Number of samples", "Enter the number of exposure to take. Exposure will be spaced evenly between min and max angles.");
+    static angleHelp = Help.key("Max angle", "Maximum RA angle from meridian (°). The mount will move in the same side of pier from the meridian up to this angle (mount limit)");
+    static minAltitudeHelp = Help.key("Minimum altitude", "Ensure exposure below are not taken at altitude below that angle (°).");
+    static slewRateHelp = Help.key("Slew rate", "Choose slew rate for the mount moves. Refer to the INDI driver of the mount for actual meaning.");
     accessor: BackendAccessor.BackendAccessor<PolarAlignSettings>;
     
     constructor(props:Props) {
@@ -106,16 +111,16 @@ class InitialConfirm extends React.PureComponent<Props> {
             <Panel guid="astrom:polaralign:movements">
                 <span>Scope moves</span>
                 <div>
-                    Max angle from zenith (°):
-                    <Float accessor={this.accessor.child('angle')} min={0} max={120}/>
+                    Max angle from meridian (°):
+                    <Float accessor={this.accessor.child('angle')} min={0} max={120} helpKey={InitialConfirm.angleHelp}/>
                 </div>
                 <div>
                     Min alt. above horizon (°):
-                    <Float accessor={this.accessor.child('minAltitude')} min={0} max={90}/>
+                    <Float accessor={this.accessor.child('minAltitude')} min={0} max={90} helpKey={InitialConfirm.minAltitudeHelp}/>
                 </div>
                 <div>
                     Number of samples:
-                    <Int accessor={this.accessor.child('sampleCount')} min={3} max={99}/>
+                    <Int accessor={this.accessor.child('sampleCount')} min={3} max={99} helpKey={InitialConfirm.sampleCountHelp}/>
                 </div>
                 <div>
                     Slew rate:
@@ -124,6 +129,7 @@ class InitialConfirm extends React.PureComponent<Props> {
                         valuePath="$.backend.astrometry.settings.polarAlign.slewRate"
                         setValue={this.setSlewRate}
                         vecName="TELESCOPE_SLEW_RATE"
+                        helpKey={InitialConfirm.slewRateHelp}
                         />
                 </div>
             </Panel>

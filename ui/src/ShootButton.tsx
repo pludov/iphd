@@ -1,6 +1,7 @@
 import * as React from 'react';
 import CancellationToken from 'cancellationtoken';
 
+import * as Help from './Help';
 import { atPath } from "./shared/JsonPath";
 import * as Store from "./Store";
 import * as Utils from './Utils';
@@ -34,6 +35,10 @@ type MappedProps = {
 type Props = InputProps & MappedProps;
 
 class ShootBton extends React.PureComponent<Props> {
+    static shootBtonHelp = Help.key("Shoot", "Start frame exposure on the selected INDI camera device.");
+    static spyBtonHelp = Help.key("Spy", "Listen for image taken guiding capture software (for the selected INDI camera device).");
+    static abortBtonHelp = Help.key("Abort", "Abort the current frame capture on the selected INDI camera device.");
+
     constructor(props:Props) {
         super(props);
     }
@@ -44,9 +49,9 @@ class ShootBton extends React.PureComponent<Props> {
         var title = !this.props.available || !this.props.running ? '' :this.props.exposure + "s";
 
         return <div className={'ShootBar' + (this.props.available && this.props.running ? ' ActiveShootBar' : ' InactiveShootBar')}>
-            <input disabled={(!this.props.available) || this.props.running} type="button" onClick={this.shoot} className="ShootBton" value="Shoot"/>
+            <input disabled={(!this.props.available) || this.props.running} type="button" onClick={this.shoot} className="ShootBton" value="Shoot" {...ShootBton.shootBtonHelp.dom()}/>
             {this.props.streamBton
-                ? <input disabled={(!this.props.available) || (this.props.running && this.props.managed)} type="button" onClick={this.stream} className="ShootBton" value="Spy"/>
+                ? <input disabled={(!this.props.available) || (this.props.running && this.props.managed)} type="button" onClick={this.stream} className="ShootBton" value="Spy" {...ShootBton.spyBtonHelp.dom()}/>
                 : null
             }
             <div className='ShootProgress' style={{position: 'relative'}}>
@@ -58,7 +63,7 @@ class ShootBton extends React.PureComponent<Props> {
                     {title}
                 </div>
             </div>
-            <input disabled={(!this.props.available) || !this.props.running} type="button" onClick={this.abort} className="ShootAbortBton" value="Abort"/>
+            <input disabled={(!this.props.available) || !this.props.running} type="button" onClick={this.abort} className="ShootAbortBton" value="Abort" {...ShootBton.abortBtonHelp.dom()}/>
         </div>;
     }
 

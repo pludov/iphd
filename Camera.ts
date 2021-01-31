@@ -1,7 +1,7 @@
 import CancellationToken from 'cancellationtoken';
 import MemoryStreams from 'memory-streams';
 import { ExpressApplication, AppContext } from "./ModuleBase";
-import {CameraStatus, CameraDeviceSettings, BackofficeStatus, Sequence} from './shared/BackOfficeStatus';
+import {CameraStatus, CameraDeviceSettings, BackofficeStatus, Sequence, ImageStatus} from './shared/BackOfficeStatus';
 import JsonProxy from './JsonProxy';
 import { DriverInterface, Vector } from './Indi';
 import {Task, createTask} from "./Task.js";
@@ -178,6 +178,13 @@ export default class Camera
             ], this.updateDoneImages.bind(this), true
         );
         this.updateDoneImages();
+    }
+
+    getImageByUuid(uuid:string): ImageStatus|undefined {
+        if (Obj.hasKey(this.currentStatus.images.byuuid, uuid)) {
+            return this.currentStatus.images.byuuid[uuid];
+        }
+        return undefined;
     }
 
     updateDoneImages()

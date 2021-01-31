@@ -1,0 +1,110 @@
+.HelpButton {
+    display: inline-block;
+    position: fixed;
+    right: 0.1vw;
+    top: 0;
+    width: var(--app-icon-size);
+    object-fit: cover;
+    border: calc(var(--app-border)) solid transparent;
+    cursor: pointer;
+}
+
+.HelpButton:hover {
+    filter: brightness(130%);
+}
+
+.HelpOverlay {
+    position: fixed;
+    z-index: 10;
+    left: 0px;
+    top: 0px;
+    bottom: 0px;
+    right: 0px;
+    overflow: hidden;
+    background-color: rgba(100, 124, 169, 0.3); /* Black w/ opacity */
+}
+
+.HelpArea {
+    position: fixed;
+    background-color: rgb(255,255,255); /* Fallback color */
+    background-color: rgba(255,255,255,0.4); /* Black w/ opacity */
+
+    border: 5px solid #60FF60;
+    border-radius: 5px;
+    margin: -5px;
+
+    border: calc(0.5 * var(--pct)) solid #60B060;
+    border-radius: calc(0.5 * var(--pct));
+    margin: calc(-0.5 * var(--pct));
+
+    cursor: help;
+}
+
+.HelpArea:hover {
+    border: calc(0.5 * var(--pct)) solid #80FF80;
+}
+
+.HelpArea.Selected {
+    background-color: rgb(128,255,128); /* Fallback color */
+    background-color: rgba(128,255,128,0.6); /* Black w/ opacity */
+    z-index: 1;
+}
+
+
+.HelpBubble {
+    position: fixed;
+    background: #607060;
+    right: calc(50vw - 30 * var(--pct));
+    width: calc(60 * var(--pct));
+    height: calc(30vh);
+    border: calc(0.5 * var(--pct)) solid #70c070;
+    border-radius: calc(0.5 * var(--pct));
+    padding: calc(0.5 * var(--pct));
+    text-align: justify;
+    display: flex;
+    flex-direction: column;
+}
+
+.HelpTitle {
+    text-align: center;
+    text-decoration: underline;
+    font-size: 115%;
+    margin-bottom: calc(0.5*var(--pct));
+}
+
+.HelpContent {
+    flex-basis: 0px;
+    flex-grow: 1;
+    overflow: auto;
+    padding: calc(0.5*var(--pct));
+}
+
+.HelpControlBar {
+    text-align: right;
+}
+
+.closeHelpBubbleButton {
+    display: inline-block;
+    right: calc(2 * var(--pct));
+    bottom: calc(2 * var(--pct));
+    width: calc(5 * var(--pct));
+    height: calc(5 * var(--pct));
+}
+
+.HelpBubble_center {
+    top: calc(50vh - 15 * var(--pct));
+}
+
+.HelpBubble_top {
+    top: calc(20vh - 15 * var(--pct));
+}
+
+.HelpBubble_bottom {
+    top: calc(80vh - 15 * var(--pct));
+}
+
+
+
+.closeHelpBubbleButton:hover {
+    filter: brightness(130%);
+}

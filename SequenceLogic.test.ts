@@ -31,6 +31,7 @@ describe("SequenceLogic", () => {
             
             // uuids of images
             images: [],
+            imageStats: {},
         }
         
         const logic:SequenceLogic = new SequenceLogic(sequence, uuidMock());
@@ -123,6 +124,7 @@ describe("SequenceLogic", () => {
             
             // uuids of images
             images: [],
+            imageStats: {},
         }
         
         
@@ -301,6 +303,7 @@ describe("SequenceLogic", () => {
             
             // uuids of images
             images: [],
+            imageStats: {},
         }
         
         
@@ -402,6 +405,7 @@ describe("SequenceLogic", () => {
             
             // uuids of images
             images: [],
+            imageStats: {},
         }
         
         

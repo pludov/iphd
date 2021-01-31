@@ -1,4 +1,5 @@
 import * as React from 'react';
+import * as Help from "./Help"
 import "./TextEdit.css"
 
 type FullScreenEditProps = {
@@ -45,6 +46,7 @@ type Props = {
     value: string;
     onChange: (s:string)=>(void);
     focusRef?: React.RefObject<HTMLDivElement>;
+    helpKey?: Help.Key;
 }
 
 type State = {
@@ -69,7 +71,7 @@ export default class TextEdit extends React.PureComponent<Props, State> {
         if (v === undefined || v === "") {
             v = " ";
         }
-        return <span className="TextEdit" ref={this.props.focusRef} tabIndex={0} onClick={this.openEditor}>{v}{editor}</span>
+        return <span className="TextEdit" ref={this.props.focusRef} tabIndex={0} onClick={this.openEditor} {...this.props.helpKey?.dom()}>{v}{editor}</span>
     }
 
     openEditor=()=>{

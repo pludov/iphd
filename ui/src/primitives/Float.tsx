@@ -1,4 +1,5 @@
 import * as React from 'react';
+import * as Help from '../Help';
 import * as Store from '../Store';
 import * as BaseText from './BaseText';
 
@@ -6,6 +7,7 @@ type Props = {
     accessor: Store.Accessor<number|null>;
     min?: number;
     max?: number;
+    helpKey?: Help.Key;
 }
 
 const MappedNumber = Store.Connect<BaseText.default<number|null>, BaseText.InputProps<number|null>, {}, {}>(BaseText.default);
@@ -17,6 +19,7 @@ class Float extends React.PureComponent<Props> {
                     toString={this.numberToString}
                     fromString={this.numberFromString}
                     children={this.props.children}
+                    helpKey={this.props.helpKey}
                     />
     }
 

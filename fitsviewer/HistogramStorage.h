@@ -62,7 +62,7 @@ struct HistogramChannelData {
 struct HistogramStorage {
 	int channelCount;
 	uint8_t bitpix;
-
+	double padding;
 	char datas[0];
 
 	static HistogramStorage* build(const RawDataStorage *rcs, int x0, int y0, int x1, int y1, std::function<void* (long int)> allocator);

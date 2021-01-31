@@ -50,6 +50,7 @@ describe("SequenceLogicDithering", () => {
             
             // uuids of images
             images: [],
+            imageStats: {},
         }
         
         const logic:SequenceLogic = new SequenceLogic(sequence, uuidMock());
@@ -116,6 +117,7 @@ describe("SequenceLogicDithering", () => {
             
             // uuids of images
             images: [],
+            imageStats: {},
         }
         
         const logic:SequenceLogic = new SequenceLogic(sequence, uuidMock());
@@ -198,6 +200,7 @@ describe("SequenceLogicDithering", () => {
             
             // uuids of images
             images: [],
+            imageStats: {},
         }
         
         const logic:SequenceLogic = new SequenceLogic(sequence, uuidMock());
@@ -273,6 +276,7 @@ describe("SequenceLogicDithering", () => {
             
             // uuids of images
             images: [],
+            imageStats: {},
         }
         
         const logic:SequenceLogic = new SequenceLogic(sequence, uuidMock());
@@ -368,6 +372,7 @@ describe("SequenceLogicDithering", () => {
             
             // uuids of images
             images: [],
+            imageStats: {},
         }
         
         const logic:SequenceLogic = new SequenceLogic(sequence, uuidMock());
@@ -442,6 +447,7 @@ describe("SequenceLogicDithering", () => {
             
             // uuids of images
             images: [],
+            imageStats: {},
         }
         
         const logic:SequenceLogic = new SequenceLogic(sequence, uuidMock());
@@ -523,6 +529,7 @@ describe("SequenceLogicDithering", () => {
             
             // uuids of images
             images: [],
+            imageStats: {},
         }
         
         const logic:SequenceLogic = new SequenceLogic(sequence, uuidMock());

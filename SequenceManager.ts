@@ -4,7 +4,7 @@ const TraceError = require('trace-error');
 import CancellationToken from 'cancellationtoken';
 import * as jsonpatch from 'json-patch';
 import { ExpressApplication, AppContext } from "./ModuleBase";
-import { CameraDeviceSettings, BackofficeStatus, SequenceStatus, Sequence, SequenceStep, SequenceStepStatus, SequenceStepParameters} from './shared/BackOfficeStatus';
+import { CameraDeviceSettings, BackofficeStatus, SequenceStatus, Sequence, SequenceStep, SequenceStepStatus, SequenceStepParameters, PhdGuideStep, PhdGuideStats, ImageStats, ImageStatus} from './shared/BackOfficeStatus';
 import JsonProxy from './JsonProxy';
 import { hasKey, deepCopy } from './Obj';
 import {Task, createTask} from "./Task.js";
@@ -59,9 +59,12 @@ export default class SequenceManager
     lastFwhm: number|undefined;
     lastStarCount: number|undefined;
     lastImageTime: number = 0;
+    lastGuideStats: PhdGuideStats|undefined;
+    lastBackgroundLevel: number|undefined;
     get indiManager() { return this.context.indiManager };
     get imagingSetupManager() { return this.context.imagingSetupManager };
     get imageProcessor() { return this.context.imageProcessor };
+    get phd() { return this.context.phd };
     constructor(app:ExpressApplication, appStateManager:JsonProxy<BackofficeStatus>, context:AppContext) {
         this.appStateManager = appStateManager;
         this.appStateManager.getTarget().sequence = {
@@ -98,16 +101,27 @@ export default class SequenceManager
             },
             // read callback
             (content:SequenceStatus["sequences"])=> {
+                // Renumber sequences
+                this.sequenceIdGenerator.renumber(content.list, content.byuuid);
+
                 for(const sid of Object.keys(content.byuuid)) {
                     const seq = content.byuuid[sid];
                     seq.images = [];
+                    if (!seq.imageStats) {
+                        seq.imageStats = {};
+                    }
                     if (seq.storedImages) {
                         for(const image of seq.storedImages!) {
+                            const {device, path, ...stats} = {...image};
+                            const status: ImageStatus = {device, path};
+
                             // Pour l'instant c'est brutal
-                            const uuid = this.sequenceIdGenerator.next();
+                            const uuid = this.context.camera.imageIdGenerator.next();
                             this.context.camera.currentStatus.images.list.push(uuid);
-                            this.context.camera.currentStatus.images.byuuid[uuid] = image;
+                            this.context.camera.currentStatus.images.byuuid[uuid] = status;
                             seq.images.push(uuid);
+
+                            seq.imageStats[uuid] = stats;
                         }
                     }
                     delete(seq.storedImages);
@@ -122,10 +136,13 @@ export default class SequenceManager
                     seq.storedImages = [];
                     for(const uuid of seq.images) {
                         if (hasKey(this.context.camera.currentStatus.images.byuuid, uuid)) {
-                            seq.storedImages.push(this.context.camera.currentStatus.images.byuuid[uuid]);
+                            const toWrite = {...this.context.camera.currentStatus.images.byuuid[uuid],
+                                            ... Obj.getOwnProp(seq.imageStats, uuid)};
+                            seq.storedImages.push(toWrite);
                         }
                     }
                     delete seq.images;
+                    delete seq.imageStats;
                 }
                 return content;
             }
@@ -153,7 +170,8 @@ export default class SequenceManager
             stepStatus: {
             },
 
-            images: []
+            images: [],
+            imageStats: {},
         };
         this.currentStatus.sequences.list.push(key);
         return key;
@@ -364,32 +382,65 @@ export default class SequenceManager
             return rslt;
         }
 
-        const computeFwhm = async (shootResult: BackOfficeAPI.ShootResult)=> {
+        const computeStats = async (ct: CancellationToken, indiFrameType: string|undefined, shootResult: BackOfficeAPI.ShootResult, target: ImageStats, guideSteps: Array<PhdGuideStep>)=> {
             ct.throwIfCancelled();
-            console.log('Asking FWHM for ', JSON.stringify(shootResult, null, 2));
-            const starFieldResponse = await this.imageProcessor.compute(ct, {
-                starField: { source: {
-                    path: shootResult.path,
-                    streamId: "",
-                }}
-            });
-            
-            // FIXME: mutualise that somwhere
-            const starField = starFieldResponse.stars;
-            console.log('StarField', JSON.stringify(starField, null, 2));
-            let fwhm, starCount;
-            starCount = starField.length;
-            if (starField.length) {
-                fwhm = 0;
-                for(let star of starField) {
-                    fwhm += star.fwhm;
-                }
-                fwhm /= starField.length;
-            }
 
-            this.lastFwhm = fwhm;
-            this.lastStarCount = starCount;
+            target.guideStats = this.phd.computeGuideStats(guideSteps);
+
+            const histogram = await this.imageProcessor.compute(ct,
+                {
+                    histogram: { source: {
+                        path: shootResult.path,
+                        streamId: "",
+                    },
+                    options: {
+                        maxBits: 10
+                    }
+                },
+            });
+
+            const channelBlacks = histogram.map(ch=>this.imageProcessor.getHistgramAduLevel(ch, 0.2));
+
+            target.backgroundLevel = channelBlacks.length ? channelBlacks.reduce((a, c)=>a+c, 0) / (1024 * channelBlacks.length) : undefined;
+
+            if (indiFrameType === 'FRAME_LIGHT') {
+                ct.throwIfCancelled();
+
+                // FIXME: mutualise that somewhere
+                console.log('Asking FWHM for ', JSON.stringify(shootResult, null, 2));
+                const starFieldResponse = await this.imageProcessor.compute(ct, {
+                    starField: { source: {
+                        path: shootResult.path,
+                        streamId: "",
+                    }}
+                });
+                const starField = starFieldResponse.stars;
+                console.log('StarField', JSON.stringify(starField, null, 2));
+                let fwhm, starCount;
+                starCount = starField.length;
+                if (starField.length) {
+                    fwhm = 0;
+                    for(let star of starField) {
+                        fwhm += star.fwhm;
+                    }
+                    fwhm /= starField.length;
+                }
+
+                target.fwhm = fwhm;
+                target.starCount = starCount;
+            }
+        }
+
+        const computeStatsWithMetrics = async (ct: CancellationToken, indiFrameType: string|undefined, shootResult: BackOfficeAPI.ShootResult, target: ImageStats, guideSteps: Array<PhdGuideStep>)=>{
+            await computeStats(ct, indiFrameType, shootResult, target, guideSteps);
+
             this.lastImageTime = Date.now();
+            this.lastGuideStats = Obj.deepCopy(target.guideStats);
+            this.lastBackgroundLevel = target.backgroundLevel;
+            this.lastFwhm = target.fwhm;
+            this.lastStarCount = target.starCount;
+
+            console.log('Statistic updated :', target);
         }
 
         const sequenceLogic = async (ct: CancellationToken) => {
@@ -468,7 +519,19 @@ export default class SequenceManager
 
                 const settings:CameraDeviceSettings = {...param, exposure: param.exposure};
 
-                settings.prefix = sequence.title + '_' + stepTypeLabel + '_XXX';
+                settings.prefix = sanitizePath(sequence.title) + '_' + sanitizePath(stepTypeLabel);
+
+                if (param.filter) {
+                    settings.prefix += '_' + sanitizePath(param.filter);
+                }
+
+                if (param.exposure < 1 || (param.exposure % 1)) {
+                    settings.prefix += '_' + Math.floor(param.exposure * 1000) + 'ms';
+                } else {
+                    settings.prefix += '_' + Math.floor(param.exposure) + 's';
+                }
+
+                settings.prefix += '_XXX';
 
                 const currentExecutionStatus = nextStep[nextStep.length - 1];
                 // Copy because it could change concurrently in case of removal/reorder
@@ -530,7 +593,16 @@ export default class SequenceManager
 
                 sequence.progress = (stepTypeLabel) + " " + shootTitle;
                 ct.throwIfCancelled();
-                const shootResult = await this.context.camera.doShoot(ct, cameraDevice(), ()=>(settings));
+
+                const guideSteps:Array<PhdGuideStep> = [];
+                const unregisterPhd = (param.type === 'FRAME_LIGHT') ? this.phd.listenForSteps((step)=>guideSteps.push(step)) : ()=>{};
+
+                let shootResult;
+                try {
+                    shootResult = await this.context.camera.doShoot(ct, cameraDevice(), ()=>(settings));
+                } finally {
+                    unregisterPhd();
+                }
                 
                 progress.imagePosition++;
                 progress.timeSpent += param.exposure;
@@ -538,9 +610,8 @@ export default class SequenceManager
                 sequence.images.push(shootResult.uuid);
                 sequenceLogic.finish(currentExecutionStatus);
 
-                if (param.type === 'FRAME_LIGHT') {
-                    computeFwhm(shootResult);
-                }
+                sequence.imageStats[shootResult.uuid] = {};
+                computeStatsWithMetrics(CancellationToken.CONTINUE, param.type, shootResult, sequence.imageStats[shootResult.uuid], guideSteps);
             }
         }
 
@@ -664,6 +735,56 @@ export default class SequenceManager
         });
 
         ret.push({
+            name: 'sequence_background_level',
+            help: 'adu level (0-1) of black (20% histogram) - of last LIGHT image from sequence',
+            type: 'gauge',
+            value: alive ? this.lastBackgroundLevel: undefined,
+        });
+
+        ret.push({
+            name: 'sequence_guiding_rms',
+            help: 'rms error for the last LIGHT image from sequence',
+            type: 'gauge',
+            value: alive ? nullToUndefined(this.lastGuideStats?.RADECDistanceRMS) : undefined,
+        });
+
+        ret.push({
+            name: 'sequence_guiding_rms_ra',
+            help: 'rms error (ra) for the last LIGHT image from sequence',
+            type: 'gauge',
+            value: alive ? nullToUndefined(this.lastGuideStats?.RADistanceRMS) : undefined,
+        });
+
+        ret.push({
+            name: 'sequence_guiding_rms_dec',
+            help: 'rms error (dec) for the last LIGHT image from sequence',
+            type: 'gauge',
+            value: alive ? nullToUndefined(this.lastGuideStats?.DECDistanceRMS) : undefined,
+        });
+
+        ret.push({
+            name: 'sequence_guiding_peak',
+            help: 'peak error for the last LIGHT image from sequence',
+            type: 'gauge',
+            value: alive ? nullToUndefined(this.lastGuideStats?.RADECDistancePeak) : undefined,
+        });
+
+        ret.push({
+            name: 'sequence_guiding_peak_ra',
+            help: 'peak error (ra) for the last LIGHT image from sequence',
+            type: 'gauge',
+            value: alive ? nullToUndefined(this.lastGuideStats?.RADistancePeak) : undefined,
+        });
+
+        ret.push({
+            name: 'sequence_guiding_peak_dec',
+            help: 'rms error (peak) for the last LIGHT image from sequence',
+            type: 'gauge',
+            value: alive ? nullToUndefined(this.lastGuideStats?.DECDistancePeak) : undefined,
+        });
+
+
+        ret.push({
             name: 'sequence_star_count',
             help: 'number of stars detected in LIGHT image from sequence',
             type: 'gauge',
@@ -717,4 +838,18 @@ export default class SequenceManager
             dropSequence: this.dropSequence,
         }
     }
+}
+
+
+function nullToUndefined(e:number|null|undefined):number|undefined {
+    if (e === null) {
+        return undefined;
+    } else {
+        return e;
+    }
+}
+
+function sanitizePath(p : string) {
+    // Be cool with windows
+    return p.replace(/[\/\.\*\?\:\\ ]+/g, '-');
 }

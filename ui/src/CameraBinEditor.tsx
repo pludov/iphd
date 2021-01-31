@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
+import * as Help from './Help';
 import { atPath } from './shared/JsonPath';
 import * as PromiseSelector from './PromiseSelector';
 import * as Utils from './Utils';
@@ -51,12 +52,15 @@ function BinTitle(x:number) {
     return "bin" + x;
 }
 
+const cameraBinSelectorHelp = Help.key("BIN", "Select the binning value for the frame exposure");
+
 const CameraBinSelector = connect((store: Store.Content, ownProps: InputProps) => {
     const desc = ownProps.device === undefined ? undefined : IndiUtils.getDeviceDesc(store, ownProps.device)?.CCD_BINNING;
     const root = {
             active: atPath(store, ownProps.valuePath),
             availablesGenerator: BinValueGenerator,
             getTitle: BinTitle,
+            helpKey: cameraBinSelectorHelp,
     }
     if (desc === undefined) {
          return {
